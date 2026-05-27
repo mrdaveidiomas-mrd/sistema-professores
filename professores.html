@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Gerenciamento de professores: convites, valores por aula, atribuição de alunos." />
+  <meta name="theme-color" content="#032d6f" />
+  <title>Hey, Teacher! — Professores</title>
+  <script>try{var _t=localStorage.getItem('ht_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" /></noscript>
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" /></noscript>
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dark.css" />
+  <link rel="stylesheet" href="css/desktop.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+</head>
+<body class="app-page">
+
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list">
+        <!-- preenchido por sidebar.js conforme o papel -->
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="user-info" id="openProfileBtn" aria-label="Editar perfil">
+        <div class="user-avatar" id="sidebarAvatar" aria-hidden="true">
+          <span class="user-avatar-initials">A</span>
+        </div>
+        <div class="user-details">
+          <span class="user-name" id="sidebarUserName">Administrador</span>
+          <span class="user-role">Administrador</span>
+        </div>
+        <i class="fa-solid fa-pen-to-square user-edit-icon" aria-hidden="true"></i>
+      </button>
+      <button class="btn-icon-only" id="settingsBtn" aria-label="Configurações">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title"><h2>Professores</h2></div>
+      <div class="topbar-actions">
+        <button class="btn btn--primary btn--sm" id="addTeacherBtn">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Convidar Professor</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="page-content" id="mainContent">
+
+      <section class="toolbar toolbar--cards-align" aria-label="Busca">
+        <div class="search-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="search" id="teacherSearch" class="search-input"
+                 placeholder="Buscar professor por nome ou e-mail..." aria-label="Buscar professor" />
+        </div>
+        <div class="results-count" id="teachersCount" aria-live="polite"></div>
+      </section>
+
+      <section class="cards-grid" id="teachersGrid" aria-label="Lista de professores">
+        <div class="empty-state" id="emptyTeachers">
+          <i class="fa-solid fa-chalkboard-user empty-state-icon"></i>
+          <p class="empty-state-title">Nenhum professor cadastrado</p>
+          <p class="empty-state-desc">Convide o primeiro professor para começar</p>
+          <button class="btn btn--primary" id="addFirstTeacherBtn">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Convidar Professor</span>
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============ MODAL: Convidar / Editar professor ============ -->
+  <div class="modal-overlay" id="teacherModalOverlay" aria-hidden="true">
+    <div class="modal" id="teacherModal" role="dialog" aria-modal="true" aria-labelledby="teacherModalTitle">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="teacherModalTitle">Convidar Professor</h3>
+        <button class="modal-close" id="teacherModalClose" aria-label="Fechar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form class="modal-body" id="teacherForm" novalidate>
+        <input type="hidden" id="teacherId" />
+
+        <fieldset class="form-fieldset">
+          <legend class="form-legend"><i class="fa-solid fa-id-card"></i> Dados do Professor</legend>
+
+          <div class="form-row form-row--2">
+            <div class="form-group">
+              <label for="teacherName" class="form-label">Nome completo <span class="required">*</span></label>
+              <input type="text" id="teacherName" class="form-input" placeholder="Nome do professor" required />
+              <span class="form-error" id="teacherNameError"></span>
+            </div>
+            <div class="form-group">
+              <label for="teacherEmail" class="form-label">E-mail <span class="required">*</span></label>
+              <input type="email" id="teacherEmail" class="form-input" placeholder="professor@email.com" required />
+              <span class="form-error" id="teacherEmailError"></span>
+            </div>
+          </div>
+
+          <div class="form-row form-row--2">
+            <div class="form-group">
+              <label for="teacherPhone" class="form-label">Telefone</label>
+              <input type="tel" id="teacherPhone" class="form-input" placeholder="(00) 00000-0000" />
+            </div>
+            <div class="form-group">
+              <label for="teacherSubject" class="form-label">Língua</label>
+              <input type="text" id="teacherSubject" class="form-input" placeholder="Ex: Inglês, Espanhol" />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-fieldset">
+          <legend class="form-legend"><i class="fa-solid fa-dollar-sign"></i> Valor por Aula</legend>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="teacherRate" class="form-label">Valor padrão por aula (R$)</label>
+              <input type="number" id="teacherRate" class="form-input" placeholder="0,00" min="0" step="0.01" />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-fieldset" id="teacherAssignFieldset" style="display:none">
+          <legend class="form-legend"><i class="fa-solid fa-user-graduate"></i> Alunos atribuídos</legend>
+          <p style="opacity:.7;margin:0 0 8px 0;font-size:.85rem">
+            Selecione os alunos deste professor.
+          </p>
+          <div id="teacherStudentsList" class="schedule-list"></div>
+        </fieldset>
+
+        <fieldset class="form-fieldset" id="teacherClassesFieldset" style="display:none">
+          <legend class="form-legend"><i class="fa-solid fa-users"></i> Turmas atribuídas</legend>
+          <div id="teacherClassesList" class="schedule-list"></div>
+        </fieldset>
+
+        <fieldset class="form-fieldset" id="teacherStatusFieldset" style="display:none">
+          <legend class="form-legend"><i class="fa-solid fa-toggle-on"></i> Status</legend>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="teacherActive" class="checkbox-input" checked />
+              <span class="checkbox-custom"></span>
+              <span>Ativo</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="login-alert" id="teacherAlert" role="alert" aria-live="polite"></div>
+      </form>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn--danger" id="deleteTeacherBtn" style="display:none">
+          <i class="fa-solid fa-trash"></i> <span>Excluir</span>
+        </button>
+        <button type="submit" form="teacherForm" class="btn btn--primary" id="saveTeacherBtn">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span id="saveTeacherBtnText">Enviar Convite</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/errors.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/modals.js" defer></script>
+  <script src="js/profile.js" defer></script>
+  <script src="js/ui-roles.js" defer></script>
+  <script src="js/professores.js" defer></script>
+</body>
+</html>

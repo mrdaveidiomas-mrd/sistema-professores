@@ -1,0 +1,967 @@
+/* ==========================================================================
+   MOBILE.CSS — Hey, Teacher! Sistema de Gestão
+   Overrides e ajustes para telas pequenas (< 768px)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. SIDEBAR — drawer deslizante no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-2xl);
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0);
+    animation: slideInLeft var(--transition-base) both;
+  }
+
+  .sidebar-close {
+    display: flex !important;
+  }
+
+  .sidebar-overlay.is-visible {
+    display: block !important;
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+  }
+
+  .sidebar-toggle {
+    display: flex !important;
+  }
+
+  /* Impede o scroll do body quando o sidebar está aberto */
+  body.sidebar-open {
+    overflow: hidden;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   2. TOPBAR
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .topbar {
+    padding: 0 16px;
+    gap: 10px;
+  }
+
+  .topbar-title h2 {
+    font-size: 1rem;
+  }
+
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  .topbar-date {
+    display: none;
+  }
+
+  /* Esconder texto dos botões no mobile pequeno */
+  .topbar-actions .btn span:not(.btn-loader) {
+    display: none;
+  }
+
+  .topbar-actions .btn {
+    padding: 8px;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+  }
+
+  .topbar-actions .btn i {
+    margin: 0;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   3. PAGE CONTENT
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .page-content {
+    padding: 16px;
+    gap: 16px;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   4. LOGIN PAGE
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+
+  .login-card {
+    padding: 24px 20px;
+  }
+
+  .login-title {
+    font-size: 1.5rem;
+  }
+
+  .login-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   5. STATS GRID — coluna única no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 479px) {
+
+  .stats-grid,
+  .stats-grid--4,
+  .stats-grid--finance {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+
+  .stats-grid,
+  .stats-grid--4,
+  .stats-grid--finance {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   5b. FINANCE SUMMARY — grid unificado no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 479px) {
+
+  .finance-summary-section {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card--bar,
+  .chart-card--doughnut {
+    grid-column: 1;
+  }
+
+}
+
+@media (min-width: 480px) and (max-width: 1023px) {
+
+  .finance-summary-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Ambos os gráficos ocupam toda a largura no tablet */
+  .chart-card--bar,
+  .chart-card--doughnut {
+    grid-column: 1 / -1;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   6. CARDS GRID — coluna única / 2 colunas no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 479px) {
+
+  .cards-grid,
+  .cards-grid--classes {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cards-grid--classes {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   7. FORM ROWS — empilhados no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 639px) {
+
+  .form-row--2,
+  .form-row--3 {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   8. TOOLBAR — empilhado no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar .search-wrapper {
+    width: 100%;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-group .form-select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .results-count {
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .toolbar--wrap .filter-group--dates,
+  .toolbar--stats-align .filter-group--dates {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .date-filter {
+    width: 100%;
+  }
+
+  .date-filter .form-input {
+    flex: 1;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   9. CHARTS — altura reduzida no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .chart-card--bar .chart-wrapper {
+    height: 200px;
+  }
+
+  .chart-card--doughnut .chart-wrapper {
+    height: 180px;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   10. MODALS — tela cheia no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-overlay--large {
+    align-items: flex-end;
+    padding-top: 0;
+  }
+
+  .modal {
+    max-width: 100%;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height: 92vh;
+    transform: translateY(100%);
+  }
+
+  .modal-overlay.is-open .modal {
+    transform: translateY(0);
+  }
+
+  .modal--confirm {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  .modal-header {
+    padding: 20px 20px 14px;
+  }
+
+  .modal-body {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .modal-footer {
+    padding: 14px 20px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  /* Drag handle indicator */
+  .modal::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: var(--gray-300);
+    border-radius: var(--radius-full);
+    margin: 10px auto -4px;
+    flex-shrink: 0;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   11. TABS — compactas no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .tabs {
+    padding: 0 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    padding: 12px 14px;
+    font-size: .8125rem;
+    flex-shrink: 0;
+    gap: 5px;
+  }
+
+  .tab .fa-solid,
+  .tab .fa-regular {
+    font-size: .8125rem;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   12. TABLE — scroll horizontal no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 560px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 10px 12px;
+    font-size: .8125rem;
+  }
+
+  /* Ocultar colunas menos importantes em telas muito pequenas */
+  .data-table--attendance .col-notes,
+  .data-table .col-method {
+    display: none;
+  }
+
+  .table-card-header {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   13. PAGINATION — compacta no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .table-pagination {
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  .pagination-pages {
+    gap: 2px;
+  }
+
+  .page-btn,
+  .pagination-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   14. STUDENT CARD — ajustes mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 479px) {
+
+  .student-card {
+    padding: 16px;
+  }
+
+  .student-card-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   15. CLASS CARD — ajustes mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 479px) {
+
+  .class-card-header {
+    padding: 16px;
+  }
+
+  .class-card-body {
+    padding: 14px 16px;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   16. STAT CARD — layout compacto no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 479px) {
+
+  .stat-card {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .stat-link {
+    width: 36px;
+    height: 36px;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   17. SECTION HEADER — empilhado no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .section-header {
+    gap: 8px;
+  }
+
+  .calendar-view-controls {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .view-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: .8rem;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   18. UPCOMING LIST — compacta no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .upcoming-item {
+    padding: 12px 14px;
+  }
+
+  .upcoming-time {
+    min-width: 60px;
+    font-size: .8125rem;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   19. PAYMENT CARDS GRID — coluna única no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .payment-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-filters {
+    flex-wrap: wrap;
+  }
+
+  .payment-filters .form-select {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .topbar-actions .period-selector .period-label {
+    min-width: 90px;
+    font-size: .8rem;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   20. FINANCE SUMMARY — empilhado no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .finance-summary {
+    gap: 8px;
+  }
+
+  .fin-stat,
+  .att-stat {
+    flex: 1;
+    padding: 10px 12px;
+  }
+
+  .att-stat-value,
+  .fin-stat-value {
+    font-size: 1.1rem;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   21. RADIO GROUP / PAYMENT METHOD — empilhado no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 479px) {
+
+  .radio-group {
+    flex-direction: column;
+  }
+
+  .payment-method-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .method-btn {
+    justify-content: center;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   22. MODAL HEADER ACTIONS — ícones apenas no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .modal-header-actions .btn span {
+    display: none;
+  }
+
+  .modal-header-actions .btn {
+    padding: 8px;
+    aspect-ratio: 1;
+    min-width: 36px;
+  }
+
+  .modal-title {
+    font-size: .9375rem;
+  }
+
+  .modal-title-group {
+    gap: 10px;
+  }
+
+  .student-avatar-lg,
+  .class-avatar-lg {
+    width: 42px;
+    height: 42px;
+    font-size: 1.5rem;
+    border-radius: var(--radius-lg);
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   23. INFO GRID — coluna única no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item--full {
+    grid-column: 1;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   24. ATT STUDENT ROW — ajustes mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+
+  .att-student-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .att-status-toggle {
+    width: 100%;
+  }
+
+  .att-status-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .att-quick-actions {
+    flex-direction: column;
+  }
+
+  .att-quick-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   25. TOAST — largura total no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .toast-container {
+    bottom: 0;
+    right: 0;
+    left: 0;
+    padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .toast {
+    max-width: 100%;
+    border-radius: var(--radius-lg);
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   26. TABLE SECTION ACTIONS — compacta no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .table-actions {
+    gap: 6px;
+  }
+
+  .table-actions .btn span {
+    display: none;
+  }
+
+  .table-actions .btn {
+    padding: 7px;
+    aspect-ratio: 1;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   27. CALENDAR — altura ajustada no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .calendar-card {
+    padding: 12px;
+  }
+
+  .fc-toolbar {
+    flex-direction: column;
+    gap: 8px !important;
+  }
+
+  .fc-toolbar-chunk {
+    display: flex;
+    justify-content: center;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   28. FORM FIELDSET — padding reduzido
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .form-fieldset {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .modal-body {
+    gap: 14px;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   29. SIDEBAR FOOTER — compacto no mobile pequeno
+   -------------------------------------------------------------------------- */
+@media (max-width: 360px) {
+
+  .sidebar-footer {
+    padding: 12px;
+  }
+
+  .user-details .user-role {
+    display: none;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   30. SAFE AREA (iPhone notch / Dynamic Island)
+   -------------------------------------------------------------------------- */
+@supports (padding-top: env(safe-area-inset-top)) {
+
+  @media (max-width: 767px) {
+
+    .sidebar {
+      padding-top: env(safe-area-inset-top);
+    }
+
+    .topbar {
+      padding-top: env(safe-area-inset-top);
+      height: calc(var(--topbar-height) + env(safe-area-inset-top));
+    }
+
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   31. TOUCH TARGETS — botões acessíveis no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  /* Mínimo 44px de altura para alvos de toque */
+  .btn,
+  .nav-link,
+  .action-btn,
+  .pagination-btn,
+  .page-btn,
+  .view-btn,
+  .att-status-btn {
+    min-height: 44px;
+  }
+
+  .action-btn {
+    width: 36px;
+    height: 36px;
+    min-height: 36px;
+  }
+
+  .nav-link {
+    padding: 13px 14px;
+  }
+
+  /* Inputs maiores para facilitar o toque */
+  .form-input,
+  .form-select,
+  .search-input {
+    min-height: 46px;
+    font-size: 1rem; /* Previne zoom automático no iOS */
+  }
+
+  .form-textarea {
+    font-size: 1rem;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   32. LOGO no sidebar — mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .sidebar-logo-img {
+    height: 38px;
+  }
+
+  .sidebar-logo {
+    flex: 1;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   33. USER-INFO botão — mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .user-info {
+    padding: 8px;
+  }
+
+  .user-edit-icon {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   34. SWIPE HINT nas tabelas
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+
+  /* Indicador visual de scroll */
+  .table-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 32px;
+    background: linear-gradient(to right, rgba(255,255,255,.9), transparent);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   35. MODAL DE PERFIL — mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .modal--profile {
+    max-width: 100%;
+  }
+
+  .profile-modal-header {
+    padding: 20px;
+  }
+
+  .profile-avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .profile-avatar--lg {
+    width: 60px;
+    height: 60px;
+  }
+
+  .profile-avatar span { font-size: 1.1rem; }
+  .profile-avatar--lg span { font-size: 1.4rem; }
+
+  .form-row--2 .form-group {
+    min-width: 0;
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   36. TOPBAR — botão toggle mais visível
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .sidebar-toggle {
+    display: flex !important;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    color: var(--gray-700);
+    background: var(--gray-100);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-toggle:hover,
+  .sidebar-toggle:active {
+    background: var(--color-primary-surface);
+    color: var(--color-primary);
+  }
+
+}
+
+/* --------------------------------------------------------------------------
+   37. CARDS — animação de entrada escalonada
+   -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+
+  .student-card:nth-child(1) { animation-delay: .05s; }
+  .student-card:nth-child(2) { animation-delay: .10s; }
+  .student-card:nth-child(3) { animation-delay: .15s; }
+  .student-card:nth-child(4) { animation-delay: .20s; }
+
+  .class-card:nth-child(1) { animation-delay: .05s; }
+  .class-card:nth-child(2) { animation-delay: .10s; }
+
+  .stat-card:nth-child(1) { animation-delay: .05s; }
+  .stat-card:nth-child(2) { animation-delay: .10s; }
+  .stat-card:nth-child(3) { animation-delay: .15s; }
+  .stat-card:nth-child(4) { animation-delay: .20s; }
+
+}
+
+/* --------------------------------------------------------------------------
+   38. LOGIN — logo centralizada no mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+
+  .login-logo-img {
+    height: 64px;
+  }
+
+  .login-title {
+    font-size: 1.375rem;
+  }
+
+  .login-logo {
+    margin-bottom: 14px;
+  }
+
+}
+
+/* Export Atterndance button */
+@media (max-width: 767px) {
+  #exportAttBtn{
+    width: 120px;
+    justify-content: center;
+    padding: 10px;
+    font-size: .9rem;
+  }
+}

@@ -1,0 +1,1096 @@
+/* ==========================================================================
+   DARK.CSS - Hey, Teacher! Sistema de Gestao
+   Todas as sobrescricoes de tema escuro ([data-theme="dark"])
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   40. DARK MODE
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  --gray-50:  #0f1520;
+  --gray-100: #19202f;
+  --gray-200: #232d44;
+  --gray-300: #2f3d5a;
+  --gray-400: #586a90;
+  --gray-500: #7d93b8;
+  --gray-600: #9db3d3;
+  --gray-700: #c0d0e8;
+  --gray-800: #dbe6f5;
+  --gray-900: #edf3fc;
+
+  --text-primary:   #edf3fc;
+  --text-secondary: #9db3d3;
+  --text-muted:     #586a90;
+
+  --color-primary-surface:   rgba(3,45,111,.28);
+  --color-primary-lighter:   #2d4e8c;
+  --color-secondary-surface: rgba(166,4,4,.22);
+  --color-success-surface:   rgba(21,128,61,.2);
+  --color-warning-surface:   rgba(180,83,9,.2);
+  --color-danger-surface:    rgba(220,38,38,.2);
+  --color-info-surface:      rgba(3,105,161,.2);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.45), 0 2px 4px rgba(0,0,0,.3);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,.45), 0 4px 6px rgba(0,0,0,.3);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,.5),  0 8px 10px rgba(0,0,0,.35);
+}
+
+/* Superfícies principais */
+[data-theme="dark"] .topbar,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .table-card,
+[data-theme="dark"] .chart-card,
+[data-theme="dark"] .student-card,
+[data-theme="dark"] .teacher-card,
+[data-theme="dark"] .material-card,
+[data-theme="dark"] .class-card,
+[data-theme="dark"] .payment-card,
+[data-theme="dark"] .upcoming-item,
+[data-theme="dark"] .modal,
+[data-theme="dark"] .toast,
+[data-theme="dark"] .calendar-card,
+[data-theme="dark"] .settings-panel {
+  background: var(--gray-100);
+  border-color: var(--gray-200);
+}
+
+[data-theme="dark"] .topbar { border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .stat-card-icon  { color: var(--color-primary-light); }
+[data-theme="dark"] .stat-card-arrow { color: var(--gray-300); }
+[data-theme="dark"] .stat-card:hover { border-color: var(--gray-300); }
+[data-theme="dark"] .teacher-card-avatar { background: rgba(22,163,74,.2); }
+[data-theme="dark"] .teacher-card-footer { border-top-color: var(--gray-200); }
+[data-theme="dark"] .material-card-footer { border-top-color: var(--gray-200); }
+[data-theme="dark"] .material-card-category { background: var(--color-primary-surface); }
+[data-theme="dark"] .preview-notice { background: var(--gray-50); border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .category-pill { border-color: var(--gray-200); }
+[data-theme="dark"] .folder-card { background: var(--gray-100); border-color: var(--gray-200); }
+[data-theme="dark"] .folder-action-btn:hover { background: var(--gray-200); }
+[data-theme="dark"] .card-menu-btn:hover,
+[data-theme="dark"] .card-menu-btn.active { background: var(--gray-200); color: var(--text-primary); }
+[data-theme="dark"] .card-actions-menu { background: var(--gray-100); border-color: var(--gray-200); }
+[data-theme="dark"] .card-actions-item { color: var(--text-primary); }
+[data-theme="dark"] .card-actions-item:hover { background: var(--gray-200); }
+[data-theme="dark"] .card-actions-item.danger:hover { background: rgba(239,68,68,.12); }
+[data-theme="dark"] .breadcrumb-back { border-color: var(--gray-300); color: var(--text-secondary); }
+[data-theme="dark"] .breadcrumb-back:hover { background: var(--gray-200); color: var(--text-primary); border-color: var(--gray-400); }
+[data-theme="dark"] .app-tabs { border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .app-tab:hover { background: var(--gray-100); }
+[data-theme="dark"] .app-tab--active { color: #6ea8ff; border-bottom-color: #6ea8ff; }
+[data-theme="dark"] .app-tab--active:hover { background: transparent; }
+[data-theme="dark"] .file-drop-area { border-color: var(--gray-200); }
+[data-theme="dark"] .file-drop-area:hover { background: var(--color-primary-surface); border-color: var(--color-primary-lighter); }
+[data-theme="dark"] .upload-progress-bar { background: var(--gray-200); }
+[data-theme="dark"] .badge--active   { background: rgba(22,163,74,.2); color: #4ade80; }
+[data-theme="dark"] .badge--inactive { background: var(--gray-200); color: var(--gray-400); }
+
+/* Divisores internos */
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer,
+[data-theme="dark"] .table-card-header,
+[data-theme="dark"] .payment-card-header,
+[data-theme="dark"] .chart-card-header,
+[data-theme="dark"] .settings-panel-header,
+[data-theme="dark"] .settings-item { border-color: var(--gray-200); }
+
+/* Inputs, selects, textareas */
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .form-textarea,
+[data-theme="dark"] .search-input {
+  background: var(--gray-100);
+  border-color: var(--gray-200);
+  color: var(--text-primary);
+}
+[data-theme="dark"] .form-input::placeholder,
+[data-theme="dark"] .form-textarea::placeholder,
+[data-theme="dark"] .search-input::placeholder { color: var(--text-muted); }
+[data-theme="dark"] select option { background: var(--gray-100); color: var(--text-primary); }
+
+/* Tabela */
+[data-theme="dark"] .data-table thead tr { background: var(--gray-50); }
+[data-theme="dark"] .data-table td,
+[data-theme="dark"] .data-table th { border-color: var(--gray-200); }
+[data-theme="dark"] .data-table tbody tr:hover { background: rgba(255,255,255,.03); }
+
+/* Controles de view / paginação */
+[data-theme="dark"] .table-view-toggle { border-color: var(--gray-200); }
+[data-theme="dark"] .view-toggle-btn,
+[data-theme="dark"] .pagination-btn,
+[data-theme="dark"] .page-btn {
+  background: var(--gray-100);
+  border-color: var(--gray-200);
+  color: var(--gray-500);
+}
+[data-theme="dark"] .view-toggle-btn--active,
+[data-theme="dark"] .page-btn--active { background: var(--color-primary); color: var(--color-white); }
+
+/* Period selector */
+[data-theme="dark"] .period-selector { background: var(--gray-100); border-color: var(--gray-200); }
+
+/* Modal overlay */
+[data-theme="dark"] .modal-overlay { background: rgba(0,0,0,.7); }
+
+/* Tabs (perfil) */
+[data-theme="dark"] .profile-tab-bar { border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .tab-btn { color: var(--text-secondary); border-color: transparent; }
+[data-theme="dark"] .tab-btn--active { color: var(--color-primary); border-color: var(--color-primary); }
+
+/* Info items (detalhe de aluno/turma) */
+[data-theme="dark"] .info-item { background: var(--gray-50); border-color: var(--gray-200); }
+
+/* Payment record (linha dentro do card) */
+[data-theme="dark"] .payment-record { background: var(--gray-50); }
+
+/* Method buttons */
+[data-theme="dark"] .method-btn { border-color: var(--gray-300); color: var(--gray-600); }
+
+/* Attendance selector */
+[data-theme="dark"] .att-students-selector { border-color: var(--gray-200); }
+[data-theme="dark"] .att-student-row { border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .att-student-row:hover { background: var(--gray-50); }
+
+/* Individual-mode search */
+[data-theme="dark"] .att-student-search-wrap { background: var(--gray-100); border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .att-search-option-label { color: var(--gray-400); }
+[data-theme="dark"] .att-search-or { color: var(--gray-300); }
+[data-theme="dark"] .att-search-or::before,
+[data-theme="dark"] .att-search-or::after { background: var(--gray-200); }
+[data-theme="dark"] .att-student-dropdown { background: var(--gray-50); border-color: var(--gray-200); box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+[data-theme="dark"] .att-dropdown-item { border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .att-dropdown-item:hover { background: var(--gray-100); }
+[data-theme="dark"] .att-individual-empty { color: var(--gray-300); }
+
+/* Itens de alunos na turma */
+[data-theme="dark"] .class-student-item { background: var(--gray-50); }
+
+/* Empty states em grids */
+[data-theme="dark"] .cards-grid > .empty-state,
+[data-theme="dark"] .cards-grid--classes > .empty-state,
+[data-theme="dark"] .payment-cards-grid > .empty-state,
+[data-theme="dark"] .upcoming-list > .empty-state {
+  background: var(--gray-100);
+  border-color: var(--gray-200);
+}
+
+/* Profile modal gradient header */
+[data-theme="dark"] .profile-modal-header {
+  background: linear-gradient(135deg, #021e4a 0%, #032d6f 100%);
+}
+
+/* Toasts */
+[data-theme="dark"] .toast--success { background: #052e16; border-color: #166534; }
+[data-theme="dark"] .toast--error   { background: #2d0505; border-color: #7a0303; }
+[data-theme="dark"] .toast--warning { background: #291700; border-color: #713f12; }
+[data-theme="dark"] .toast--info    { background: #021526; border-color: #075985; }
+
+/* Sidebar footer separator */
+[data-theme="dark"] .sidebar-footer { border-top-color: rgba(255,255,255,.08); }
+
+/* Att status buttons */
+[data-theme="dark"] .att-status-btn { border-color: var(--gray-300); color: var(--gray-600); }
+
+/*Calendar view controles */
+[data-theme="dark"] .calendar-view-controls { background: var(--gray-100); border-color: var(--gray-200);color: var(--gray-500); }
+
+/*Calendar Table Header */
+[data-theme="dark"] .calendar-section thead { background: var(--color-primary); }
+
+/*Login card*/
+[data-theme="dark"] .login-card { background: var(--gray-100); border-color: var(--gray-200); }
+[data-theme="dark"] .login-form .form-input { background: var(--gray-100); border-color: var(--gray-200); color: var(--text-primary); }
+[data-theme="dark"] .login-form .form-input:not(:placeholder-shown) { color: var(--text-primary); }
+[data-theme="dark"] .login-form .form-input::placeholder { color: var(--text-muted); }
+
+/* Upcoming Time */
+[data-theme="dark"] .upcoming-time { color: var(--text-secondary); }
+
+/* Student detail info items */
+[data-theme="dark"] .info-grid { margin-top: 12px; }
+[data-theme="dark"] .info-item { background: var(--gray-100); }
+[data-theme="dark"] .info-item .schedule-chip {color: var(--color-white); }
+
+/* Upcoming badges — dark mode */
+[data-theme="dark"] .upcoming-badge {
+  background: var(--gray-200);
+  color: var(--gray-500);
+}
+
+/* Level badges — dark mode */
+[data-theme="dark"] .level-badge,
+[data-theme="dark"] .level-badge--beginner,
+[data-theme="dark"] .level-badge--elementary,
+[data-theme="dark"] .level-badge--intermediate,
+[data-theme="dark"] .level-badge--upper-intermediate,
+[data-theme="dark"] .level-badge--advanced,
+[data-theme="dark"] .level-badge--proficient {
+  background: var(--gray-200);
+  color: var(--gray-500);
+}
+
+/* ==========================================================================
+   PROGRESSO — Componentes de progresso dos alunos e currículo
+   ========================================================================== */
+
+/* ---------- Student cards grid ---------- */
+.prog-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* ---------- Student progress card ---------- */
+.prog-card {
+  background: var(--color-white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 150ms, box-shadow 150ms, transform 150ms;
+  outline: none;
+}
+
+.prog-card:hover {
+  border-color: var(--color-primary-lighter);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.prog-card:focus-visible {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-surface);
+}
+
+.prog-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.prog-card-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--color-primary-surface);
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: .875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.prog-card-info { flex: 1; min-width: 0; }
+
+.prog-card-name {
+  font-size: .9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prog-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+
+.prog-card-class {
+  font-size: .75rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.prog-card-arrow {
+  color: var(--gray-400);
+  font-size: .75rem;
+  flex-shrink: 0;
+}
+
+/* ---------- Progress bar ---------- */
+.prog-bar-wrap {
+  height: 6px;
+  background: var(--gray-100);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.prog-bar-fill {
+  height: 100%;
+  background: var(--color-success-light);
+  border-radius: var(--radius-full);
+  transition: width 400ms ease;
+}
+
+.prog-bar-label {
+  font-size: .6875rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+/* ---------- Card body (recent topics) ---------- */
+.prog-card-body {
+  border-top: 1px solid var(--gray-100);
+  padding-top: 10px;
+}
+
+.prog-card-topics-label {
+  font-size: .6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.prog-card-topic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.prog-card-topic + .prog-card-topic { border-top: 1px solid var(--gray-100); }
+
+.prog-card-topic-title {
+  font-size: .8125rem;
+  color: var(--text-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prog-card-topic-date {
+  font-size: .75rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.prog-card-empty-topics {
+  font-size: .8125rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 8px 0;
+  margin: 0;
+}
+
+/* ---------- Progress badges ---------- */
+.prog-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  font-size: .75rem;
+  font-weight: 600;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: opacity 150ms, transform 100ms;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.prog-badge:hover { opacity: .85; transform: scale(.97); }
+
+.prog-badge--realizado {
+  background: var(--color-success-surface);
+  color: var(--color-success);
+  border-color: #bbf7d0;
+}
+
+.prog-badge--dispensado {
+  background: var(--color-info-surface);
+  color: var(--color-info);
+  border-color: #bae6fd;
+}
+
+.prog-badge--nao_realizado {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+  border-color: #fecaca;
+}
+
+.prog-badge--nao_registrado {
+  background: var(--gray-100);
+  color: var(--text-muted);
+  border-color: var(--gray-200);
+}
+
+.prog-badge--sm { padding: 2px 8px; font-size: .6875rem; }
+
+/* ---------- Progress status radio options (modal) ---------- */
+.prog-status-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.prog-status-option { display: flex; }
+
+.radio-input { display: none; }
+
+.prog-status-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  font-size: .8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 150ms ease;
+}
+
+.prog-status-btn--realizado      { background: var(--color-success-surface); color: var(--color-success); }
+.prog-status-btn--dispensado     { background: var(--color-info-surface);    color: var(--color-info);    }
+.prog-status-btn--nao_realizado  { background: var(--color-danger-surface);  color: var(--color-danger);  }
+.prog-status-btn--nao_registrado { background: var(--gray-100);              color: var(--text-secondary); }
+
+.radio-input:checked + .prog-status-btn--realizado      { border-color: var(--color-success); }
+.radio-input:checked + .prog-status-btn--dispensado     { border-color: var(--color-info);    }
+.radio-input:checked + .prog-status-btn--nao_realizado  { border-color: var(--color-danger);  }
+.radio-input:checked + .prog-status-btn--nao_registrado { border-color: var(--gray-500);      }
+
+/* ---------- Student progress modal body ---------- */
+/* ---- Modal summary bar ---- */
+.prog-modal-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 16px;
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  margin-bottom: 4px;
+}
+
+.prog-modal-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prog-modal-summary-pct {
+  font-size: .8125rem;
+  font-weight: 700;
+  color: var(--color-success);
+  flex-shrink: 0;
+  min-width: 36px;
+  text-align: right;
+}
+
+.prog-modal-summary-label {
+  font-size: .75rem;
+  color: var(--text-secondary);
+}
+
+/* ---- Modal tabs (guias de nível) — wrapper com botões nav ---- */
+.prog-modal-tabs-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* Botões visíveis apenas quando há overflow */
+.prog-tabs-nav {
+  display: none;
+  flex-shrink: 0;
+  width: 30px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--gray-500);
+  font-size: .75rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+.prog-modal-tabs-wrap--overflow .prog-tabs-nav { display: flex; }
+.prog-tabs-nav:hover:not(:disabled) { background: var(--color-primary-surface); border-color: var(--color-primary); color: var(--color-primary); }
+.prog-tabs-nav:disabled { opacity: .35; cursor: default; }
+
+.prog-modal-tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+.prog-modal-tabs::-webkit-scrollbar { display: none; }
+
+.pmtab {
+  display: flex;
+  width: 125.5px;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--gray-200);
+  background: var(--gray-50);
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 150ms ease;
+  min-width: 64px;
+}
+
+.pmtab:hover {
+  border-color: var(--color-primary-lighter);
+  color: var(--color-primary);
+  background: var(--color-primary-surface);
+}
+
+.pmtab--active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.pmtab-code {
+  font-size: .9375rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.pmtab-sub {
+  font-size: .6rem;
+  font-weight: 500;
+  opacity: .75;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pmtab-count {
+  font-size: .625rem;
+  font-weight: 600;
+  opacity: .65;
+  margin-top: 2px;
+}
+
+.pmtab--active .pmtab-sub,
+.pmtab--active .pmtab-count { opacity: .85; }
+
+/* ---- Category bar (below tabs) ---- */
+.prog-modal-cat-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 14px;
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+}
+
+.prog-modal-cat-name {
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.prog-modal-cat-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- Items container ---- */
+.prog-modal-items {
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  flex: 1;               /* grows to fill available space between cat-bar and pagination */
+}
+
+/* Item row number */
+.prog-item-num {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 20px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ---- Pagination bar ---- */
+.prog-modal-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 0 2px;
+  flex-shrink: 0;
+}
+
+.prog-modal-page-info {
+  font-size: .8125rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 120px;
+  text-align: center;
+}
+
+/* ---- Collapsible category (currículo view only) ---- */
+.prog-category-section {
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+/* Remove native <details> marker */
+.prog-category-section > summary { list-style: none; }
+.prog-category-section > summary::-webkit-details-marker { display: none; }
+
+.prog-category-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  background: var(--gray-50);
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  transition: background 150ms;
+}
+
+.prog-category-header:hover { background: var(--gray-100); }
+
+/* Bottom border only when open */
+.prog-category-section[open] > .prog-category-header {
+  border-bottom: 1px solid var(--gray-200);
+}
+
+/* Chevron rotates when open */
+.prog-cat-chevron {
+  font-size: .6rem;
+  color: var(--text-muted);
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+}
+
+.prog-category-section[open] > summary .prog-cat-chevron {
+  transform: rotate(90deg);
+}
+
+.prog-cat-name { flex: 1; }
+
+/* Mini progress bar inside summary */
+.prog-cat-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.prog-cat-minibar {
+  width: 60px;
+  height: 5px;
+  background: var(--gray-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.prog-cat-minibar-fill {
+  height: 100%;
+  background: var(--color-success-light);
+  border-radius: var(--radius-full);
+  transition: width 300ms ease;
+}
+
+.prog-category-count {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--gray-200);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.prog-category-items { padding: 4px 0; }
+
+.prog-item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  min-height: 44px;
+}
+
+.prog-item-row:last-child { border-bottom: none; }
+
+.prog-item-info { flex: 1; min-width: 0; }
+
+.prog-item-title {
+  display: block;
+  font-size: .875rem;
+  color: var(--text-primary);
+}
+
+.prog-item-desc {
+  display: block;
+  font-size: .75rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+.prog-item-date {
+  display: block;
+  font-size: .6875rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* History <details> */
+.prog-item-history { margin-top: 4px; }
+
+.prog-item-history summary {
+  font-size: .6875rem;
+  color: var(--color-info);
+  cursor: pointer;
+  user-select: none;
+}
+
+.prog-item-history-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  flex-wrap: wrap;
+}
+
+.prog-item-history-date { font-size: .6875rem; color: var(--text-muted); }
+
+.prog-item-history-note { font-size: .6875rem; color: var(--text-secondary); font-style: italic; }
+
+.prog-history-delete {
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  font-size: .75rem;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: color 150ms;
+  margin-left: auto;
+}
+
+.prog-history-delete:hover { color: var(--color-danger); }
+
+/* ---------- Curriculum view ---------- */
+
+.curriculum-category {
+  background: var(--color-white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin: 16px 0;
+  /* Evita artefatos de subpixel nos cantos do border-radius */
+  background-clip: padding-box;
+  isolation: isolate;
+}
+
+.curriculum-cat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+  flex-wrap: wrap;
+}
+
+.curriculum-cat-reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.curriculum-reorder-btn {
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  font-size: .6875rem;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: color 150ms, background 150ms;
+  line-height: 1;
+}
+
+.curriculum-reorder-btn:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: var(--color-primary-surface);
+}
+
+.curriculum-reorder-btn:disabled { opacity: .3; cursor: default; }
+
+.curriculum-cat-name {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.curriculum-count {
+  font-size: .75rem;
+  color: var(--text-secondary);
+  background: var(--gray-200);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.curriculum-cat-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.curriculum-items { padding: 4px 0; }
+
+.curriculum-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  border-top: 1px solid var(--gray-300);
+}
+
+.curriculum-item:last-child { border-bottom: none; }
+
+.curriculum-item-reorder { display: flex; flex-direction: column; gap: 1px; }
+
+.curriculum-item-text { flex: 1; min-width: 0; }
+
+.curriculum-item-title {
+  display: block;
+  font-size: .875rem;
+  color: var(--text-primary);
+}
+
+.curriculum-item-desc {
+  display: block;
+  font-size: .75rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+.curriculum-item-actions { display: flex; gap: 6px; }
+
+.curriculum-empty {
+  padding: 14px;
+  text-align: center;
+  font-size: .8125rem;
+  color: var(--text-muted);
+}
+
+/* ---------- Attendance — curriculum picker com guias ---------- */
+.att-curriculum-picker {
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.att-curriculum-empty {
+  padding: 20px;
+  text-align: center;
+  font-size: .8125rem;
+  color: var(--text-muted);
+}
+
+/* Barra de guias */
+.att-curr-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--gray-50);
+  border-bottom: 1.5px solid var(--gray-200);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.att-curr-tabs::-webkit-scrollbar { display: none; }
+
+.att-curr-tab {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  background: transparent;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+  margin-bottom: -1.5px; /* alinha com o border-bottom do container */
+}
+.att-curr-tab:hover { color: var(--color-primary); background: var(--color-primary-surface); }
+.att-curr-tab--active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  background: var(--color-white);
+}
+
+/* Painéis de itens */
+.att-curr-panels { background: var(--color-white); }
+
+.att-curr-panel { display: none; }
+.att-curr-panel--active { display: block; }
+
+/* Item de currículo dentro do painel */
+.att-curriculum-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 120ms;
+  border-bottom: 1px solid var(--gray-100);
+}
+.att-curriculum-item:last-child { border-bottom: none; }
+.att-curriculum-item:hover { background: var(--gray-50); }
+
+.att-curriculum-item input[type="checkbox"] {
+  accent-color: var(--color-primary);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.att-curriculum-item label {
+  font-size: .8125rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  flex: 1;
+}
+
+td.text-small.textmuted{
+  font-size: .6875rem;
+  color: var(--gray-600);
+}
+
+/* Compatibilidade — mantém .att-curriculum-cat-label caso apareça */
+.att-curriculum-cat-label {
+  padding: 5px 12px;
+  background: var(--gray-50);
+  font-size: .6875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+/* Lesson content cell in frequency table */
+.lesson-content-cell { font-size: .8125rem; color: var(--text-secondary); }
+
+/* ---------- Progress tab inside alunos detail modal ---------- */
+.prog-tab-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .8125rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 4px 0;
+}
+
+.prog-tab-link:hover { text-decoration: underline; }
+
+/* ==========================================================================
+   DARK MODE — Progresso
+   ========================================================================== */
+
+[data-theme="dark"] .prog-card { background: var(--gray-800); border-color: var(--gray-200); }
+[data-theme="dark"] .prog-card-avatar { background: rgba(3,45,111,.3); }
+[data-theme="dark"] .prog-card-body { border-top-color: var(--gray-200); }
+[data-theme="dark"] .prog-card-topic + .prog-card-topic { border-top-color: var(--gray-200); }
+[data-theme="dark"] .prog-bar-wrap { background: var(--gray-200); }
+
+[data-theme="dark"] .prog-badge--nao_registrado {
+  background: var(--gray-200);
+  color: var(--gray-500);
+  border-color: var(--gray-300);
+}
+
+[data-theme="dark"] .prog-status-btn--nao_registrado {
+  background: var(--gray-200);
+  color: var(--gray-500);
+}
+
+[data-theme="dark"] .prog-modal-summary   { background: var(--gray-100); border-color: var(--gray-200); }
+[data-theme="dark"] .prog-tabs-nav        { background: var(--gray-100); border-color: var(--gray-200); color: var(--gray-400); }
+[data-theme="dark"] .prog-tabs-nav:hover:not(:disabled) { background: rgba(3,45,111,.3); border-color: var(--color-primary-lighter); color: var(--color-primary-lighter); }
+[data-theme="dark"] .pmtab                { background: var(--gray-100); border-color: var(--gray-200); color: var(--text-secondary); }
+[data-theme="dark"] .pmtab:hover          { background: rgba(3,45,111,.25); border-color: var(--color-primary-lighter); }
+[data-theme="dark"] .pmtab--active        { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-white); }
+[data-theme="dark"] .prog-modal-cat-bar   { background: var(--gray-100); border-color: var(--gray-200); }
+[data-theme="dark"] .prog-modal-items     { border-color: var(--gray-200); }
+[data-theme="dark"] .prog-category-section { border-color: var(--gray-200); }
+[data-theme="dark"] .prog-category-header  { background: var(--gray-100); }
+[data-theme="dark"] .prog-category-header:hover { background: var(--gray-200); }
+[data-theme="dark"] .prog-category-section[open] > .prog-category-header { border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .prog-category-count   { background: var(--gray-300); }
+[data-theme="dark"] .prog-cat-minibar      { background: var(--gray-300); }
+[data-theme="dark"] .prog-item-row         { border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .prog-card { background: var(--gray-100); border-color: var(--gray-200); }
+[data-theme="dark"] .prog-cards-grid { margin-top: 16px;}
+
+[data-theme="dark"] .curriculum-category    { background: var(--gray-100); border-color: var(--gray-200); }
+[data-theme="dark"] .curriculum-cat-header  { background: var(--gray-100); border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .curriculum-count       { background: var(--gray-300); }
+[data-theme="dark"] .curriculum-item        { border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .curriculum-empty       { color: var(--text-muted); }
+[data-theme="dark"] .curriculum-items { background: var(--gray-200); border-color: var(--gray-300); }
+
+[data-theme="dark"] .att-curriculum-picker     { border-color: var(--gray-200); }
+[data-theme="dark"] .att-curr-tabs            { background: var(--gray-100); border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .att-curr-tab             { color: var(--gray-400); }
+[data-theme="dark"] .att-curr-tab:hover       { color: var(--color-primary); background: var(--gray-50); }
+[data-theme="dark"] .att-curr-tab--active     { color: var(--color-primary); background: var(--gray-200); }
+[data-theme="dark"] .att-curr-panels          { background: var(--gray-50); }
+[data-theme="dark"] .att-curriculum-cat-label { background: var(--gray-100); border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .att-curriculum-item      { border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .att-curriculum-item:hover { background: var(--gray-100); }
+
+/* ==========================================================================
+   DARK MODE — Pequenos ajustes
+   ========================================================================== */
+
+/* Availability calendar header */   
+[data-theme="dark"] #availCalendar thead{ background: var(--color-primary); }
+
+/* FullCalendar event colors */
+[data-theme="dark"] #calendar .fc-event-main { background: var(--color-secondary); border-color: var(--gray-200); }  

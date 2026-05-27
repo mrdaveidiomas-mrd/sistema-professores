@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Acompanhamento de progresso dos alunos por currículo CEFR, com marcação de conteúdos realizados por nível." />
+  <meta name="theme-color" content="#032d6f" />
+  <title>Hey, Teacher! — Progresso</title>
+  <script>try{var _t=localStorage.getItem('ht_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" /></noscript>
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" /></noscript>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dark.css" />
+  <link rel="stylesheet" href="css/desktop.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+</head>
+<body class="app-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list"><!-- preenchido por sidebar.js --></ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="user-info" id="openProfileBtn" aria-label="Editar perfil">
+        <div class="user-avatar" id="sidebarAvatar" aria-hidden="true"><span class="user-avatar-initials">P</span></div>
+        <div class="user-details"><span class="user-name" id="sidebarUserName">Professor</span><span class="user-role">Administrador</span></div>
+        <i class="fa-solid fa-pen-to-square user-edit-icon" aria-hidden="true"></i>
+      </button>
+      <button class="btn-icon-only" id="settingsBtn" aria-label="Configurações"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
+      <div class="topbar-title"><h2>Progresso</h2></div>
+      <div class="topbar-actions"></div>
+    </header>
+
+    <main class="page-content" id="mainContent">
+
+      <!-- Tabs: Alunos / Currículo -->
+      <div class="app-tabs" role="tablist" aria-label="Visualização">
+        <button class="app-tab app-tab--active" data-view="students" id="viewStudentsBtn"
+                role="tab" aria-selected="true" aria-controls="studentsView">
+          <i class="fa-solid fa-users"></i><span>Alunos</span>
+        </button>
+        <button class="app-tab" data-view="curriculum" id="viewCurriculumBtn"
+                role="tab" aria-selected="false" aria-controls="curriculumView">
+          <i class="fa-solid fa-book-open"></i><span>Currículo</span>
+        </button>
+      </div>
+
+      <!-- ===== VIEW: Alunos ===== -->
+      <div id="studentsView">
+        <section class="toolbar" aria-label="Busca de alunos">
+          <!--<div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="search" id="progStudentSearch" class="search-input" placeholder="Buscar aluno..." aria-label="Buscar aluno" />
+          </div>-->
+          <select class="form-select" id="progFilterLevel" aria-label="Filtrar por nível">
+            <option value="">Todos os níveis</option>
+            <option value="beginner">A1 – Beginner</option>
+            <option value="elementary">A2 – Elementary</option>
+            <option value="intermediate">B1 – Intermediate</option>
+            <option value="upper-intermediate">B2 – Upper Intermediate</option>
+            <option value="advanced">C1 – Advanced</option>
+            <option value="proficient">C2 – Proficient</option>
+          </select>
+          <div class="results-count" id="progStudentsCount" aria-live="polite"></div>
+        </section>
+        <section class="prog-cards-grid" id="progCardsGrid" aria-label="Progresso dos alunos">
+          <!-- Populated by JS -->
+        </section>
+      </div>
+
+      <!-- ===== VIEW: Currículo ===== -->
+      <div id="curriculumView" style="display:none">
+        <section class="toolbar" aria-label="Gerenciar currículo">
+          <h3 class="section-title" style="margin:0">
+            <i class="fa-solid fa-layer-group section-title-icon"></i>
+            Conteúdos do Programa
+          </h3>
+          <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn--primary btn--sm" id="addCategoryBtn">
+              <i class="fa-solid fa-plus"></i>
+              Nova Categoria
+            </button>
+          </div>
+        </section>
+        <div id="curriculumList">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===== MODAL: Progresso do Aluno ===== -->
+  <div class="modal-overlay modal-overlay--large" id="studentProgressOverlay" aria-hidden="true">
+    <div class="modal modal--large" id="studentProgressModal" role="dialog" aria-modal="true" aria-labelledby="studentProgressTitle">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="student-avatar-lg" id="progressStudentAvatar" style="font-size:1.25rem;font-weight:700;color:var(--color-primary)"></div>
+          <div>
+            <h3 class="modal-title" id="studentProgressTitle">Progresso</h3>
+            <span class="modal-subtitle" id="studentProgressLevel"></span>
+          </div>
+        </div>
+        <button class="modal-close" id="studentProgressClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" id="studentProgressBody">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Categoria ===== -->
+  <div class="modal-overlay" id="categoryModalOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="categoryModalTitle">Nova Categoria</h3>
+        <button class="modal-close" id="categoryModalClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form class="modal-body" id="categoryForm" novalidate>
+        <input type="hidden" id="categoryId" />
+        <div class="form-group">
+          <label for="categoryName" class="form-label">Nome <span class="required">*</span></label>
+          <input type="text" id="categoryName" class="form-input" placeholder="Ex: Nível A1, Módulo 1, Gramática..." />
+          <span class="form-error" id="categoryNameError"></span>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="categoryModalCancel">Cancelar</button>
+        <button type="submit" form="categoryForm" class="btn btn--primary" id="categoryModalSave">
+          <i class="fa-solid fa-floppy-disk"></i> <span>Salvar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Conteúdo ===== -->
+  <div class="modal-overlay" id="contentModalOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" role="dialog" aria-modal="true" aria-labelledby="contentModalTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="contentModalTitle">Novo Conteúdo</h3>
+        <button class="modal-close" id="contentModalClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form class="modal-body" id="contentForm" novalidate>
+        <input type="hidden" id="contentId" />
+        <input type="hidden" id="contentCategoryId" />
+        <div class="form-group">
+          <label for="contentTitle" class="form-label">Título <span class="required">*</span></label>
+          <input type="text" id="contentTitle" class="form-input" placeholder="Ex: Verbo To Be, Present Perfect..." />
+          <span class="form-error" id="contentTitleError"></span>
+        </div>
+        <div class="form-group">
+          <label for="contentDescription" class="form-label">Descrição <span class="text-muted">(opcional)</span></label>
+          <textarea id="contentDescription" class="form-textarea" rows="2" placeholder="Detalhes sobre o conteúdo..."></textarea>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="contentModalCancel">Cancelar</button>
+        <button type="submit" form="contentForm" class="btn btn--primary" id="contentModalSave">
+          <i class="fa-solid fa-floppy-disk"></i> <span>Salvar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Status do Progresso ===== -->
+  <div class="modal-overlay" id="progressStatusOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" role="dialog" aria-modal="true" aria-labelledby="progressStatusTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="progressStatusTitle">Registrar Progresso</h3>
+        <button class="modal-close" id="progressStatusClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form class="modal-body" id="progressStatusForm" novalidate>
+        <input type="hidden" id="progressStatusStudentId" />
+        <input type="hidden" id="progressStatusContentId" />
+        <p id="progressStatusContentTitle" style="font-size:.9375rem;font-weight:600;color:var(--text-primary);padding:12px 16px;background:var(--gray-50);border-radius:var(--radius-md);margin-bottom:4px;"></p>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <div class="prog-status-options">
+            <label class="prog-status-option">
+              <input type="radio" name="progStatus" value="realizado" class="radio-input" />
+              <span class="prog-status-btn prog-status-btn--realizado"><i class="fa-solid fa-circle-check"></i> Realizado</span>
+            </label>
+            <label class="prog-status-option">
+              <input type="radio" name="progStatus" value="dispensado" class="radio-input" />
+              <span class="prog-status-btn prog-status-btn--dispensado"><i class="fa-solid fa-forward"></i> Dispensado</span>
+            </label>
+            <label class="prog-status-option">
+              <input type="radio" name="progStatus" value="nao_realizado" class="radio-input" />
+              <span class="prog-status-btn prog-status-btn--nao_realizado"><i class="fa-solid fa-circle-xmark"></i> Não Realizado</span>
+            </label>
+            <label class="prog-status-option">
+              <input type="radio" name="progStatus" value="" class="radio-input" />
+              <span class="prog-status-btn prog-status-btn--nao_registrado"><i class="fa-solid fa-rotate-left"></i> Limpar</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group" id="progressStatusDateGroup">
+          <label for="progressStatusDate" class="form-label">Data <span class="required">*</span></label>
+          <input type="date" id="progressStatusDate" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="progressStatusNotes" class="form-label">Observação <span class="text-muted">(opcional)</span></label>
+          <input type="text" id="progressStatusNotes" class="form-input" placeholder="Ex: Revisado, ótima evolução..." />
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="progressStatusCancel">Cancelar</button>
+        <button type="submit" form="progressStatusForm" class="btn btn--primary" id="progressStatusSave">
+          <i class="fa-solid fa-floppy-disk"></i> <span>Salvar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Confirmação Exclusão ===== -->
+  <div class="modal-overlay" id="progDeleteOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" role="alertdialog" aria-modal="true">
+      <div class="modal-header">
+        <h3 class="modal-title modal-title--danger"><i class="fa-solid fa-triangle-exclamation"></i> Confirmar exclusão</h3>
+      </div>
+      <div class="modal-body"><p id="progDeleteDesc">Tem certeza?</p></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="progDeleteCancel">Cancelar</button>
+        <button type="button" class="btn btn--danger" id="progDeleteConfirm"><i class="fa-solid fa-trash"></i> <span>Excluir</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/errors.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/modals.js" defer></script>
+  <script src="js/profile.js" defer></script>
+  <script src="js/ui-roles.js" defer></script>
+  <script src="js/progresso.js" defer></script>
+</body>
+</html>

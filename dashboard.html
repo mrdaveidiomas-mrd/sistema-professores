@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Painel principal com resumo de alunos ativos, turmas, frequência mensal, receita e calendário de aulas." />
+  <meta name="theme-color" content="#032d6f" />
+  <title>Hey, Teacher! — Dashboard</title>
+  <!-- Tema: aplica preferência salva antes do CSS renderizar (evita flash) -->
+  <script>try{var _t=localStorage.getItem('ht_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" /></noscript>
+
+  <!-- Icons -->
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" /></noscript>
+
+  <!-- FullCalendar -->
+  <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" /></noscript>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dark.css" />
+  <link rel="stylesheet" href="css/desktop.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+</head>
+<body class="app-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list"><!-- preenchido por sidebar.js --></ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="user-info" id="openProfileBtn" aria-label="Editar perfil">
+        <div class="user-avatar" id="sidebarAvatar" aria-hidden="true">
+          <span class="user-avatar-initials">P</span>
+        </div>
+        <div class="user-details">
+          <span class="user-name" id="sidebarUserName">Professor</span>
+          <span class="user-role">Administrador</span>
+        </div>
+        <i class="fa-solid fa-pen-to-square user-edit-icon" aria-hidden="true"></i>
+      </button>
+      <button class="btn-icon-only" id="settingsBtn" aria-label="Configurações">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- Main Content -->
+  <div class="main-wrapper">
+
+    <!-- Top Header -->
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title">
+        <h2>Dashboard</h2>
+      </div>
+      <div class="topbar-actions">
+        <span class="topbar-date" id="currentDate"></span>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content" id="mainContent">
+
+      <!-- Summary Cards -->
+      <section class="stats-section" aria-label="Resumo">
+        <div class="stats-grid">
+
+          <a href="alunos.html" class="stat-card stat-card--primary">
+            <i class="fa-solid fa-user-graduate stat-card-icon"></i>
+            <div class="stat-body">
+              <span class="stat-label">Alunos Ativos</span>
+              <span class="stat-value" id="statStudents">0</span>
+            </div>
+            <i class="fa-solid fa-arrow-right stat-card-arrow"></i>
+          </a>
+
+          <a href="turmas.html" class="stat-card stat-card--secondary">
+            <i class="fa-solid fa-users stat-card-icon"></i>
+            <div class="stat-body">
+              <span class="stat-label">Turmas</span>
+              <span class="stat-value" id="statClasses">0</span>
+            </div>
+            <i class="fa-solid fa-arrow-right stat-card-arrow"></i>
+          </a>
+
+          <a href="frequencia.html" class="stat-card stat-card--success">
+            <i class="fa-solid fa-calendar-check stat-card-icon"></i>
+            <div class="stat-body">
+              <span class="stat-label">Frequência do Mês</span>
+              <span class="stat-value" id="statLessons">0</span>
+            </div>
+            <i class="fa-solid fa-arrow-right stat-card-arrow"></i>
+          </a>
+
+          <a href="financas.html" class="stat-card stat-card--finance" id="statRevenueCard">
+            <i class="fa-solid fa-circle-dollar-to-slot stat-card-icon"></i>
+            <div class="stat-body">
+              <span class="stat-label" id="statRevenueLabel">Receita do Mês</span>
+              <span class="stat-value" id="statRevenue">R$ 0,00</span>
+            </div>
+            <i class="fa-solid fa-arrow-right stat-card-arrow"></i>
+          </a>
+
+        </div>
+      </section>
+
+      <!-- Calendar Section -->
+      <section class="calendar-section" aria-label="Calendário de aulas">
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="fa-regular fa-calendar section-title-icon"></i>
+            Calendário de Aulas
+          </h3>
+          <div class="calendar-view-controls" role="group" aria-label="Selecionar visualização do calendário">
+            <button class="view-btn view-btn--active" data-view="dayGridMonth" id="viewMonth">Mensal</button>
+            <button class="view-btn" data-view="timeGridWeek" id="viewWeek">Semanal</button>
+            <button class="view-btn" data-view="timeGridDay" id="viewDay">Diário</button>
+          </div>
+        </div>
+
+        <div class="calendar-card">
+          <div id="calendar" role="application" aria-label="Calendário interativo de aulas"></div>
+        </div>
+      </section>
+
+      <!-- Upcoming Classes -->
+      <section class="upcoming-section" aria-label="Próximas aulas">
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="fa-solid fa-clock-rotate-left section-title-icon"></i>
+            Próximas Aulas
+          </h3>
+        </div>
+        <div class="upcoming-list" id="upcomingList">
+          <!-- Populated by JS -->
+          <div class="empty-state">
+            <i class="fa-regular fa-calendar-xmark empty-state-icon"></i>
+            <p>Nenhuma aula agendada</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pending Makeups -->
+      <section class="upcoming-section" aria-label="Aulas pendentes de reposição" id="pendingMakeupsSection" hidden>
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="fa-solid fa-rotate-right section-title-icon"></i>
+            Pendentes de Reposição
+          </h3>
+          <a href="frequencia.html" class="text-small" style="color:var(--color-primary);text-decoration:none">Registrar reposição →</a>
+        </div>
+        <div class="upcoming-list" id="pendingMakeupsList"><!-- Populated by JS --></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- FullCalendar -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/pt-br.global.min.js" defer></script>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/errors.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/modals.js" defer></script>
+  <script src="js/calendar.js" defer></script>
+  <script src="js/profile.js" defer></script>
+  <script src="js/ui-roles.js" defer></script>
+  <script src="js/payouts.js" defer></script>
+  <script src="js/dashboard.js" defer></script>
+</body>
+</html>

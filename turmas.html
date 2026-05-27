@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Gerenciamento de turmas: criação, horários, alunos associados e nível de fluência." />
+  <meta name="theme-color" content="#032d6f" />
+  <title>Hey, Teacher! — Turmas</title>
+  <script>try{var _t=localStorage.getItem('ht_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" /></noscript>
+
+  <!-- Icons -->
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" /></noscript>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dark.css" />
+  <link rel="stylesheet" href="css/desktop.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+</head>
+<body class="app-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list"><!-- preenchido por sidebar.js --></ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="user-info" id="openProfileBtn" aria-label="Editar perfil">
+        <div class="user-avatar" id="sidebarAvatar" aria-hidden="true">
+          <span class="user-avatar-initials">P</span>
+        </div>
+        <div class="user-details">
+          <span class="user-name" id="sidebarUserName">Professor</span>
+          <span class="user-role">Administrador</span>
+        </div>
+        <i class="fa-solid fa-pen-to-square user-edit-icon" aria-hidden="true"></i>
+      </button>
+      <button class="btn-icon-only" id="settingsBtn" aria-label="Configurações">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- Main Content -->
+  <div class="main-wrapper">
+
+    <!-- Top Header -->
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title">
+        <h2>Turmas</h2>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn--primary btn--sm" id="addClassBtn">
+          <i class="fa-solid fa-plus"></i>
+          <span>Nova Turma</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content" id="mainContent">
+
+      <!-- Search & Filter Bar -->
+      <section class="toolbar" aria-label="Busca e filtros">
+        <div class="search-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input
+            type="search"
+            id="classSearch"
+            class="search-input"
+            placeholder="Buscar turma por nome..."
+            aria-label="Buscar turma"
+          />
+        </div>
+        <div class="filter-group">
+          <select class="form-select" id="filterDay" aria-label="Filtrar por dia">
+            <option value="">Todos os dias</option>
+            <option value="monday">Segunda-feira</option>
+            <option value="tuesday">Terça-feira</option>
+            <option value="wednesday">Quarta-feira</option>
+            <option value="thursday">Quinta-feira</option>
+            <option value="friday">Sexta-feira</option>
+            <option value="saturday">Sábado</option>
+          </select>
+        </div>
+        <div class="results-count" id="classesCount" aria-live="polite"></div>
+      </section>
+
+      <!-- Classes Grid -->
+      <section class="cards-grid cards-grid--classes" id="classesGrid" aria-label="Lista de turmas">
+        <!-- Populated by JS -->
+        <div class="empty-state" id="emptyClasses">
+          <i class="fa-solid fa-users-slash empty-state-icon"></i>
+          <p class="empty-state-title">Nenhuma turma cadastrada</p>
+          <p class="empty-state-desc">Clique em "Nova Turma" para começar</p>
+          <button class="btn btn--primary" id="addFirstClassBtn">
+            <i class="fa-solid fa-plus"></i>
+            Criar Turma
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================== MODAL: Criar / Editar Turma ===================== -->
+  <div class="modal-overlay" id="classModalOverlay" aria-hidden="true">
+    <div class="modal" id="classModal" role="dialog" aria-modal="true" aria-labelledby="classModalTitle">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="classModalTitle">Nova Turma</h3>
+        <button class="modal-close" id="classModalClose" aria-label="Fechar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form class="modal-body" id="classForm" novalidate>
+        <input type="hidden" id="classId" name="classId" />
+
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="className" class="form-label">Nome da turma <span class="required">*</span></label>
+            <input type="text" id="className" name="name" class="form-input" placeholder="Ex: Turma A — Intermediário" required />
+            <span class="form-error" id="classNameError"></span>
+          </div>
+          <div class="form-group">
+            <label for="classLevel" class="form-label">Nível</label>
+            <select id="classLevel" name="level" class="form-select">
+              <option value="">Selecione</option>
+              <option value="beginner">Iniciante (A1)</option>
+              <option value="elementary">Elementar (A2)</option>
+              <option value="intermediate">Intermediário (B1)</option>
+              <option value="upper-intermediate">Intermediário Superior (B2)</option>
+              <option value="advanced">Avançado (C1)</option>
+              <option value="proficient">Proficiente (C2)</option>
+            </select>
+          </div>
+        </div>
+
+        <fieldset class="form-fieldset">
+          <legend class="form-legend">
+            <i class="fa-regular fa-calendar"></i>
+            Horários das Aulas
+          </legend>
+
+          <div id="classSchedules">
+            <!-- Dynamic schedule entries via JS -->
+            <div class="schedule-entry" data-index="0">
+              <div class="form-row form-row--3">
+                <div class="form-group">
+                  <label class="form-label">Dia</label>
+                  <select name="schedules[0][day]" class="form-select">
+                    <option value="">Selecione</option>
+                    <option value="monday">Segunda</option>
+                    <option value="tuesday">Terça</option>
+                    <option value="wednesday">Quarta</option>
+                    <option value="thursday">Quinta</option>
+                    <option value="friday">Sexta</option>
+                    <option value="saturday">Sábado</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Horário</label>
+                  <input type="time" name="schedules[0][time]" class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Duração (min)</label>
+                  <input type="number" name="schedules[0][duration]" class="form-input" placeholder="60" min="15" max="240" step="15" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn--ghost btn--sm btn--add-schedule" id="addScheduleBtn">
+            <i class="fa-solid fa-plus"></i>
+            Adicionar horário
+          </button>
+        </fieldset>
+
+        <fieldset class="form-fieldset">
+          <legend class="form-legend">
+            <i class="fa-solid fa-user-graduate"></i>
+            Alunos
+          </legend>
+
+          <div class="student-selector">
+            <div class="student-selector-search">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input type="search" id="studentSelectorSearch" class="search-input" placeholder="Buscar aluno para adicionar..." />
+            </div>
+            <div class="student-selector-list" id="studentSelectorList" role="listbox" aria-label="Lista de alunos disponíveis">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <div class="selected-students" id="selectedStudentsList" aria-label="Alunos selecionados para a turma">
+            <!-- Populated by JS -->
+          </div>
+        </fieldset>
+
+        <div class="form-group">
+          <label for="classNotes" class="form-label">Observações</label>
+          <textarea id="classNotes" name="notes" class="form-textarea" placeholder="Informações adicionais sobre a turma..." rows="3"></textarea>
+        </div>
+
+      </form>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="classModalCancel">Cancelar</button>
+        <button type="submit" form="classForm" class="btn btn--primary" id="saveClassBtn">
+          <i class="fa-solid fa-floppy-disk"></i>
+          Salvar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Detalhes da Turma ===================== -->
+  <div class="modal-overlay modal-overlay--large" id="classDetailOverlay" aria-hidden="true">
+    <div class="modal modal--large" id="classDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailClassName">
+
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="class-avatar-lg" aria-hidden="true">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div>
+            <h3 class="modal-title" id="detailClassName"></h3>
+            <span class="modal-subtitle" id="detailClassLevel"></span>
+          </div>
+        </div>
+        <div class="modal-header-actions">
+          <button class="btn btn--ghost btn--sm" id="editClassBtn">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Editar</span>
+          </button>
+          <button class="btn btn--danger btn--sm" id="deleteClassBtn">
+            <i class="fa-solid fa-trash"></i>
+            <span>Excluir</span>
+          </button>
+          <button class="modal-close" id="classDetailClose" aria-label="Fechar">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="detail-section">
+          <h4 class="detail-section-title">
+            <i class="fa-regular fa-calendar-days"></i>
+            Horários
+          </h4>
+          <div id="classScheduleDetail" class="schedule-chips">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-header">
+            <h4 class="detail-section-title">
+              <i class="fa-solid fa-user-graduate"></i>
+              Alunos (<span id="classStudentCount">0</span>)
+            </h4>
+          </div>
+          <div class="class-students-list" id="classStudentsList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4 class="detail-section-title">
+            <i class="fa-regular fa-note-sticky"></i>
+            Observações
+          </h4>
+          <p id="classNotesDetail" class="detail-text">—</p>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Confirmação de Exclusão ===================== -->
+  <div class="modal-overlay" id="deleteConfirmOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" id="deleteConfirmModal" role="alertdialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
+      <div class="modal-header">
+        <h3 class="modal-title modal-title--danger" id="deleteConfirmTitle">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Confirmar exclusão
+        </h3>
+      </div>
+      <div class="modal-body">
+        <p id="deleteConfirmDesc">Tem certeza que deseja excluir esta turma? Os alunos não serão excluídos.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="deleteCancel">Cancelar</button>
+        <button type="button" class="btn btn--danger" id="deleteConfirm">
+          <i class="fa-solid fa-trash"></i>
+          Excluir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/errors.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/modals.js" defer></script>
+  <script src="js/profile.js" defer></script>
+  <script src="js/ui-roles.js" defer></script>
+  <script src="js/turmas.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Materiais de aula: visualize, baixe e gerencie os arquivos usados nas aulas." />
+  <meta name="theme-color" content="#032d6f" />
+  <title>Hey, Teacher! — Materiais</title>
+  <script>try{var _t=localStorage.getItem('ht_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" /></noscript>
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" /></noscript>
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dark.css" />
+  <link rel="stylesheet" href="css/desktop.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+</head>
+<body class="app-page">
+
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list"><!-- preenchido por sidebar.js --></ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="user-info" id="openProfileBtn" aria-label="Editar perfil">
+        <div class="user-avatar" id="sidebarAvatar" aria-hidden="true">
+          <span class="user-avatar-initials">P</span>
+        </div>
+        <div class="user-details">
+          <span class="user-name" id="sidebarUserName">Usuário</span>
+          <span class="user-role">Professor</span>
+        </div>
+        <i class="fa-solid fa-pen-to-square user-edit-icon" aria-hidden="true"></i>
+      </button>
+      <button class="btn-icon-only" id="settingsBtn" aria-label="Configurações">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title"><h2>Materiais</h2></div>
+      <div class="topbar-actions" id="topbarActions">
+        <!-- botões injetados pelo JS para admin -->
+      </div>
+    </header>
+
+    <main class="page-content" id="mainContent">
+
+      <!-- Breadcrumb (injetado pelo JS) -->
+      <nav class="breadcrumb" id="breadcrumb" style="display:none" aria-label="Navegação"></nav>
+
+      <!-- Busca -->
+      <section class="toolbar toolbar--cards-align" aria-label="Busca">
+        <div class="search-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="search" id="materialSearch" class="search-input"
+                 placeholder="Buscar em todos os materiais..." aria-label="Buscar material" />
+        </div>
+        <div class="results-count" id="materialsCount" aria-live="polite"></div>
+      </section>
+
+      <!-- Conteúdo principal (pastas + arquivos, injetado pelo JS) -->
+      <div id="materialsContent"></div>
+
+    </main>
+  </div>
+
+  <!-- ============ MODAL: Nova / Editar pasta ============ -->
+  <div class="modal-overlay" id="folderModalOverlay" aria-hidden="true">
+    <div class="modal" id="folderModal" role="dialog" aria-modal="true" aria-labelledby="folderModalTitle">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="folderModalTitle">Nova Pasta</h3>
+        <button class="modal-close" id="folderModalClose" aria-label="Fechar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form class="modal-body" id="folderForm" novalidate>
+        <input type="hidden" id="folderId" />
+
+        <div class="form-group">
+          <label for="folderName" class="form-label">Nome <span class="required">*</span></label>
+          <input type="text" id="folderName" class="form-input" placeholder="Ex: Gramática, Nível B2…" required />
+          <span class="form-error" id="folderNameError"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cor</label>
+          <div class="color-swatches" id="colorSwatches"></div>
+          <input type="hidden" id="folderColor" value="#032d6f" />
+        </div>
+
+        <div class="login-alert" id="folderAlert" role="alert" aria-live="polite"></div>
+      </form>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn--danger" id="deleteFolderBtn" style="display:none">
+          <i class="fa-solid fa-trash"></i> <span>Excluir</span>
+        </button>
+        <button type="button" class="btn btn--ghost" id="folderModalCancel">Cancelar</button>
+        <button type="submit" form="folderForm" class="btn btn--primary" id="folderSaveBtn">
+          <i class="fa-solid fa-floppy-disk"></i> <span>Salvar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: Enviar material ============ -->
+  <div class="modal-overlay" id="uploadModalOverlay" aria-hidden="true">
+    <div class="modal" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="uploadModalTitle">Enviar Material</h3>
+        <button class="modal-close" id="uploadModalClose" aria-label="Fechar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form class="modal-body" id="uploadForm" novalidate>
+
+        <div class="form-group">
+          <label class="form-label">Arquivo <span class="required">*</span></label>
+          <div class="file-drop-area" id="fileDropArea" role="button" tabindex="0"
+               aria-label="Clique ou arraste um arquivo aqui">
+            <i class="fa-solid fa-cloud-arrow-up file-drop-icon"></i>
+            <p class="file-drop-text">Arraste o arquivo aqui ou <span class="file-drop-link">clique para selecionar</span></p>
+            <p class="file-drop-hint">PPTX, PDF, DOCX, imagens · Máximo 50 MB</p>
+            <div class="file-drop-selected" id="fileDropSelected" style="display:none">
+              <i class="fa-solid fa-file-circle-check" style="color:var(--color-success)"></i>
+              <span id="fileDropName"></span>
+              <span id="fileDropSize" style="opacity:.6;font-size:.8em"></span>
+            </div>
+          </div>
+          <input type="file" id="fileInput"
+                 accept=".pptx,.ppt,.pdf,.docx,.doc,.xlsx,.xls,.jpg,.jpeg,.png,.webp"
+                 style="display:none" />
+          <span class="form-error" id="fileError"></span>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="materialName" class="form-label">Nome <span class="required">*</span></label>
+            <input type="text" id="materialName" class="form-input" placeholder="Nome do material" required />
+            <span class="form-error" id="materialNameError"></span>
+          </div>
+          <div class="form-group">
+            <label for="materialFolder" class="form-label">Pasta</label>
+            <select id="materialFolder" class="form-select">
+              <option value="">Sem pasta</option>
+              <!-- preenchido pelo JS -->
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="materialCategory" class="form-label">Categoria</label>
+            <input type="text" id="materialCategory" class="form-input"
+                   list="categoryDatalist" placeholder="Ex: Gramática, Vocabulário…" />
+            <datalist id="categoryDatalist"></datalist>
+          </div>
+          <div class="form-group">
+            <label for="materialDescription" class="form-label">Descrição</label>
+            <input type="text" id="materialDescription" class="form-input"
+                   placeholder="Breve descrição (opcional)" />
+          </div>
+        </div>
+
+        <div id="uploadProgressWrap" style="display:none">
+          <div class="upload-progress-bar">
+            <div class="upload-progress-fill" id="uploadProgressFill"></div>
+          </div>
+          <p class="upload-progress-label" id="uploadProgressLabel">Enviando…</p>
+        </div>
+
+        <div class="login-alert" id="uploadAlert" role="alert" aria-live="polite"></div>
+      </form>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="uploadModalCancel">Cancelar</button>
+        <button type="submit" form="uploadForm" class="btn btn--primary" id="uploadSaveBtn">
+          <i class="fa-solid fa-cloud-arrow-up"></i> <span>Enviar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: Editar material ============ -->
+  <div class="modal-overlay" id="editMaterialOverlay" aria-hidden="true">
+    <div class="modal" id="editMaterialModal" role="dialog" aria-modal="true" aria-labelledby="editMaterialTitle">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="editMaterialTitle">Editar Material</h3>
+        <button class="modal-close" id="editMaterialClose" aria-label="Fechar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form class="modal-body" id="editMaterialForm" novalidate>
+        <input type="hidden" id="editMaterialId" />
+
+        <div class="form-group">
+          <label for="editMaterialName" class="form-label">Nome <span class="required">*</span></label>
+          <input type="text" id="editMaterialName" class="form-input" required />
+          <span class="form-error" id="editMaterialNameError"></span>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="editMaterialFolder" class="form-label">Pasta</label>
+            <select id="editMaterialFolder" class="form-select">
+              <option value="">Sem pasta</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editMaterialCategory" class="form-label">Categoria</label>
+            <input type="text" id="editMaterialCategory" class="form-input"
+                   list="editCategoryDatalist" placeholder="Ex: Gramática…" />
+            <datalist id="editCategoryDatalist"></datalist>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="editMaterialDescription" class="form-label">Descrição</label>
+          <input type="text" id="editMaterialDescription" class="form-input"
+                 placeholder="Breve descrição (opcional)" />
+        </div>
+
+        <div class="login-alert" id="editMaterialAlert" role="alert" aria-live="polite"></div>
+      </form>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="editMaterialCancel">Cancelar</button>
+        <button type="submit" form="editMaterialForm" class="btn btn--primary" id="editMaterialSaveBtn">
+          <i class="fa-solid fa-floppy-disk"></i> <span>Salvar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: Pré-visualização ============ -->
+  <div class="modal-overlay" id="previewModalOverlay" aria-hidden="true">
+    <div class="modal modal--preview" id="previewModal" role="dialog" aria-modal="true"
+         aria-labelledby="previewTitle">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="previewTitle"
+            style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></h3>
+        <button id="previewDownloadBtn" class="btn btn--primary btn--sm" style="margin-right:8px;flex-shrink:0">
+          <i class="fa-solid fa-download"></i> <span>Baixar</span>
+        </button>
+        <button class="modal-close" id="previewClose" aria-label="Fechar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="preview-body" id="previewBody"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/errors.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/modals.js" defer></script>
+  <script src="js/profile.js" defer></script>
+  <script src="js/ui-roles.js" defer></script>
+  <script src="js/materiais.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Gerenciamento de alunos: cadastro, edição, nível de inglês, turma e histórico de progresso." />
+  <meta name="theme-color" content="#032d6f" />
+  <title>Hey, Teacher! — Alunos</title>
+  <script>try{var _t=localStorage.getItem('ht_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" /></noscript>
+
+  <!-- Icons -->
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" /></noscript>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dark.css" />
+  <link rel="stylesheet" href="css/desktop.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+</head>
+<body class="app-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list"><!-- preenchido por sidebar.js --></ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="user-info" id="openProfileBtn" aria-label="Editar perfil">
+        <div class="user-avatar" id="sidebarAvatar" aria-hidden="true">
+          <span class="user-avatar-initials">P</span>
+        </div>
+        <div class="user-details">
+          <span class="user-name" id="sidebarUserName">Professor</span>
+          <span class="user-role">Administrador</span>
+        </div>
+        <i class="fa-solid fa-pen-to-square user-edit-icon" aria-hidden="true"></i>
+      </button>
+      <button class="btn-icon-only" id="settingsBtn" aria-label="Configurações">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- Main Content -->
+  <div class="main-wrapper">
+
+    <!-- Top Header -->
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title">
+        <h2>Alunos</h2>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn--primary btn--sm" id="addStudentBtn">
+          <i class="fa-solid fa-plus"></i>
+          <span>Novo Aluno</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content" id="mainContent">
+
+      <!-- Search & Filter Bar -->
+      <section class="toolbar toolbar--cards-align" aria-label="Busca e filtros">
+        <div class="search-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input
+            type="search"
+            id="studentSearch"
+            class="search-input"
+            placeholder="Buscar aluno por nome..."
+            aria-label="Buscar aluno"
+          />
+        </div>
+        <div class="filter-group">
+          <select class="form-select" id="filterLevel" aria-label="Filtrar por nível">
+            <option value="">Todos os níveis</option>
+            <option value="beginner">Iniciante</option>
+            <option value="elementary">Elementar</option>
+            <option value="intermediate">Intermediário</option>
+            <option value="upper-intermediate">Intermediário Superior</option>
+            <option value="advanced">Avançado</option>
+            <option value="proficient">Proficiente</option>
+          </select>
+          <select class="form-select" id="filterClass" aria-label="Filtrar por turma">
+            <option value="">Todas as turmas</option>
+            <!-- Populated by JS -->
+          </select>
+        </div>
+        <div class="results-count" id="studentsCount" aria-live="polite"></div>
+      </section>
+
+      <!-- Student Cards Grid -->
+      <section class="cards-grid" id="studentsGrid" aria-label="Lista de alunos">
+        <!-- Populated by JS -->
+        <div class="empty-state" id="emptyStudents">
+          <i class="fa-solid fa-user-plus empty-state-icon"></i>
+          <p class="empty-state-title">Nenhum aluno cadastrado</p>
+          <p class="empty-state-desc">Clique em "Novo Aluno" para começar</p>
+          <button class="btn btn--primary" id="addFirstStudentBtn">
+            <i class="fa-solid fa-plus"></i>
+            Cadastrar Aluno
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================== MODAL: Criar / Editar Aluno ===================== -->
+  <div class="modal-overlay" id="studentModalOverlay" aria-hidden="true">
+    <div class="modal" id="studentModal" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="studentModalTitle">Novo Aluno</h3>
+        <button class="modal-close" id="studentModalClose" aria-label="Fechar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form class="modal-body" id="studentForm" novalidate>
+        <input type="hidden" id="studentId" name="studentId" />
+
+        <!-- Personal Info -->
+        <fieldset class="form-fieldset">
+          <legend class="form-legend">
+            <i class="fa-solid fa-id-card"></i>
+            Informações Pessoais
+          </legend>
+
+          <div class="form-row form-row--2">
+            <div class="form-group">
+              <label for="studentName" class="form-label">Nome completo <span class="required">*</span></label>
+              <input type="text" id="studentName" name="name" class="form-input" placeholder="Nome do aluno" required />
+              <span class="form-error" id="nameError"></span>
+            </div>
+            <div class="form-group">
+              <label for="studentAge" class="form-label">Idade</label>
+              <input type="number" id="studentAge" name="age" class="form-input" placeholder="Ex: 25" min="1" max="120" />
+            </div>
+          </div>
+
+          <div class="form-row form-row--2">
+            <div class="form-group">
+              <label for="studentEmail" class="form-label">E-mail</label>
+              <input type="email" id="studentEmail" name="email" class="form-input" placeholder="aluno@email.com" />
+            </div>
+            <div class="form-group">
+              <label for="studentPhone" class="form-label">Telefone</label>
+              <input type="tel" id="studentPhone" name="phone" class="form-input" placeholder="(00) 00000-0000" />
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- School Info -->
+        <fieldset class="form-fieldset">
+          <legend class="form-legend">
+            <i class="fa-solid fa-book-open"></i>
+            Informações Escolares
+          </legend>
+
+          <div class="form-row form-row--2">
+            <div class="form-group">
+              <label for="studentClass" class="form-label">Turma</label>
+              <select id="studentClass" name="classId" class="form-select">
+                <option value="">Aula individual</option>
+                <!-- Populated by JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="studentLevel" class="form-label">Nível de fluência <span class="required">*</span></label>
+              <select id="studentLevel" name="level" class="form-select" required>
+                <option value="">Selecione um nível</option>
+                <option value="beginner">Beginner (A1)</option>
+                <option value="elementary">Elementary (A2)</option>
+                <option value="intermediate">Intermediate (B1)</option>
+                <option value="upper-intermediate">Upper Intermediate (B2)</option>
+                <option value="advanced">Advanced (C1)</option>
+                <option value="proficient">Proficient (C2)</option>
+              </select>
+              <span class="form-error" id="levelError"></span>
+            </div>
+          </div>
+
+          <div id="studentSchedules">
+            <!-- Horários adicionados dinamicamente pelo JS -->
+          </div>
+          <button type="button" class="btn btn--ghost btn--sm btn--add-schedule" id="addStudentScheduleBtn">
+            <i class="fa-solid fa-plus"></i>
+            Adicionar horário
+          </button>
+
+          <div class="form-group">
+            <label for="studentNotes" class="form-label">Observações</label>
+            <textarea id="studentNotes" name="notes" class="form-textarea" placeholder="Notas adicionais sobre o aluno..." rows="3"></textarea>
+          </div>
+        </fieldset>
+
+        <!-- Financial Info -->
+        <fieldset class="form-fieldset" data-admin-only>
+          <legend class="form-legend">
+            <i class="fa-solid fa-dollar-sign"></i>
+            Mensalidade
+          </legend>
+
+          <div class="form-row form-row--2">
+            <div class="form-group">
+              <label for="studentFee" class="form-label">Valor mensal (R$)</label>
+              <input type="number" id="studentFee" name="monthlyFee" class="form-input" placeholder="0,00" min="0" step="0.01" />
+            </div>
+            <div class="form-group">
+              <label for="studentPayDay" class="form-label">Dia de vencimento</label>
+              <input type="number" id="studentPayDay" name="payDay" class="form-input" placeholder="Ex: 10" min="1" max="31" />
+            </div>
+          </div>
+
+          <div class="form-row form-row--2">
+            <div class="form-group">
+              <label for="studentContractStart" class="form-label">Início do contrato</label>
+              <input type="date" id="studentContractStart" name="contractStart" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label for="studentContractEnd" class="form-label">Término do contrato</label>
+              <input type="date" id="studentContractEnd" name="contractEnd" class="form-input" />
+            </div>
+          </div>
+        </fieldset>
+
+      </form>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="studentModalCancel">Cancelar</button>
+        <button type="submit" form="studentForm" class="btn btn--primary" id="saveStudentBtn">
+          <i class="fa-solid fa-floppy-disk"></i>
+          Salvar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Detalhes do Aluno ===================== -->
+  <div class="modal-overlay modal-overlay--large" id="studentDetailOverlay" aria-hidden="true">
+    <div class="modal modal--large" id="studentDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailStudentName">
+
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="student-avatar-lg" id="detailAvatar" aria-hidden="true">
+            <i class="fa-solid fa-circle-user"></i>
+          </div>
+          <div>
+            <h3 class="modal-title" id="detailStudentName"></h3>
+            <span class="modal-subtitle" id="detailStudentLevel"></span>
+          </div>
+        </div>
+        <div class="modal-header-actions">
+          <button class="btn btn--ghost btn--sm" id="editStudentBtn">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Editar</span>
+          </button>
+          <button class="btn btn--danger btn--sm" id="deleteStudentBtn">
+            <i class="fa-solid fa-trash"></i>
+            <span>Excluir</span>
+          </button>
+          <button class="modal-close" id="studentDetailClose" aria-label="Fechar">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Detail Tabs -->
+      <div class="tabs" role="tablist" aria-label="Informações do aluno">
+        <button class="tab tab--active" role="tab" aria-selected="true" aria-controls="tabProfile" id="btnTabProfile">
+          <i class="fa-solid fa-id-card"></i>
+          Perfil
+        </button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tabAttendance" id="btnTabAttendance">
+          <i class="fa-solid fa-calendar-check"></i>
+          Frequência
+        </button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tabFinance" id="btnTabFinance" data-admin-only>
+          <i class="fa-solid fa-receipt"></i>
+          Finanças
+        </button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tabProgress" id="btnTabProgress">
+          <i class="fa-solid fa-chart-line"></i>
+          Progresso
+        </button>
+      </div>
+
+      <div class="modal-body modal-body--tabs">
+
+        <!-- Tab: Perfil -->
+        <div class="tab-panel tab-panel--active" id="tabProfile" role="tabpanel" aria-labelledby="btnTabProfile">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">
+                <i class="fa-regular fa-envelope"></i> E-mail
+              </span>
+              <span class="info-value" id="detailEmail">—</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">
+                <i class="fa-solid fa-phone"></i> Telefone
+              </span>
+              <span class="info-value" id="detailPhone">—</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">
+                <i class="fa-solid fa-cake-candles"></i> Idade
+              </span>
+              <span class="info-value" id="detailAge">—</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">
+                <i class="fa-solid fa-users"></i> Turma
+              </span>
+              <span class="info-value" id="detailClass">—</span>
+            </div>
+            <div class="info-item info-item--full">
+              <span class="info-label">
+                <i class="fa-regular fa-calendar"></i> Horários das aulas
+              </span>
+              <div class="schedule-chips" id="detailSchedules">—</div>
+            </div>
+            <div class="info-item">
+              <span class="info-label">
+                <i class="fa-solid fa-signal"></i> Nível
+              </span>
+              <span class="info-value" id="detailLevel">—</span>
+            </div>
+            <div class="info-item" data-admin-only>
+              <span class="info-label">
+                <i class="fa-solid fa-circle-dollar-to-slot"></i> Mensalidade
+              </span>
+              <span class="info-value" id="detailFee">—</span>
+            </div>
+            <div class="info-item" data-admin-only>
+              <span class="info-label">
+                <i class="fa-regular fa-calendar-plus"></i> Início do contrato
+              </span>
+              <span class="info-value" id="detailContractStart">—</span>
+            </div>
+            <div class="info-item" data-admin-only>
+              <span class="info-label">
+                <i class="fa-regular fa-calendar-minus"></i> Término do contrato
+              </span>
+              <span class="info-value" id="detailContractEnd">—</span>
+            </div>
+          </div>
+          <div class="info-item info-item--full">
+            <span class="info-label">
+              <i class="fa-regular fa-note-sticky"></i> Observações
+            </span>
+            <p class="info-value info-value--text" id="detailNotes">—</p>
+          </div>
+        </div>
+
+        <!-- Tab: Frequência -->
+        <div class="tab-panel" id="tabAttendance" role="tabpanel" aria-labelledby="btnTabAttendance" hidden>
+          <div class="tab-toolbar">
+            <div class="attendance-summary">
+              <div class="att-stat att-stat--present">
+                <span class="att-stat-value" id="attPresent">0</span>
+                <span class="att-stat-label">Presenças</span>
+              </div>
+              <div class="att-stat att-stat--absent">
+                <span class="att-stat-value" id="attAbsent">0</span>
+                <span class="att-stat-label">Faltas</span>
+              </div>
+              <div class="att-stat att-stat--rate">
+                <span class="att-stat-value" id="attRate">0%</span>
+                <span class="att-stat-label">Frequência</span>
+              </div>
+            </div>
+            <a href="frequencia.html" class="btn btn--ghost btn--sm" id="goToAttendanceBtn">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              Ver tudo
+            </a>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" aria-label="Histórico de frequência">
+              <thead>
+                <tr>
+                  <th scope="col">Data</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Observação</th>
+                </tr>
+              </thead>
+              <tbody id="attTableBody">
+                <tr class="empty-row">
+                  <td colspan="3">
+                    <div class="empty-state empty-state--sm">
+                      <i class="fa-regular fa-calendar-xmark"></i>
+                      <p>Sem registros de frequência</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--gray-100);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn btn--ghost btn--sm" id="printAttendanceBtn">
+              <i class="fa-solid fa-print"></i>
+              Imprimir / PDF
+            </button>
+            <a href="frequencia.html" class="prog-tab-link">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              Abrir página de Frequência
+            </a>
+          </div>
+        </div>
+
+        <!-- Tab: Finanças -->
+        <div class="tab-panel" id="tabFinance" role="tabpanel" aria-labelledby="btnTabFinance" hidden data-admin-only>
+          <div class="tab-toolbar">
+            <div class="finance-summary">
+              <div class="fin-stat fin-stat--paid">
+                <span class="fin-stat-value" id="finPaid">R$ 0,00</span>
+                <span class="fin-stat-label">Pago</span>
+              </div>
+              <div class="fin-stat fin-stat--pending">
+                <span class="fin-stat-value" id="finPending">R$ 0,00</span>
+                <span class="fin-stat-label">Pendente</span>
+              </div>
+            </div>
+            <a href="financas.html" class="btn btn--ghost btn--sm" id="goToFinanceBtn">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              Ver tudo
+            </a>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" aria-label="Histórico de pagamentos">
+              <thead>
+                <tr>
+                  <th scope="col">Referência</th>
+                  <th scope="col">Valor</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Data pag.</th>
+                </tr>
+              </thead>
+              <tbody id="finTableBody">
+                <tr class="empty-row">
+                  <td colspan="4">
+                    <div class="empty-state empty-state--sm">
+                      <i class="fa-regular fa-credit-card"></i>
+                      <p>Sem registros de pagamento</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--gray-100);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn btn--ghost btn--sm" id="printFinanceBtn">
+              <i class="fa-solid fa-print"></i>
+              Imprimir / PDF
+            </button>
+            <a href="financas.html" class="prog-tab-link">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              Abrir página de Finanças
+            </a>
+          </div>
+        </div>
+
+        <!-- Tab: Progresso -->
+        <div class="tab-panel" id="tabProgress" role="tabpanel" aria-labelledby="btnTabProgress" hidden>
+          <div id="tabProgressBody">
+            <!-- Populated by JS -->
+            <div class="empty-state empty-state--sm">
+              <i class="fa-solid fa-chart-line"></i>
+              <p>Carregando...</p>
+            </div>
+          </div>
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--gray-100);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn btn--ghost btn--sm" id="printProgressBtn">
+              <i class="fa-solid fa-print"></i>
+              Imprimir / PDF
+            </button>
+            <a href="progresso.html" class="prog-tab-link">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              Abrir página de Progresso
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Confirmação de Exclusão ===================== -->
+  <div class="modal-overlay" id="deleteConfirmOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" id="deleteConfirmModal" role="alertdialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" aria-describedby="deleteConfirmDesc">
+      <div class="modal-header">
+        <h3 class="modal-title modal-title--danger" id="deleteConfirmTitle">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Confirmar exclusão
+        </h3>
+      </div>
+      <div class="modal-body">
+        <p id="deleteConfirmDesc">Tem certeza que deseja excluir este aluno? Esta ação não pode ser desfeita.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="deleteCancel">Cancelar</button>
+        <button type="button" class="btn btn--danger" id="deleteConfirm">
+          <i class="fa-solid fa-trash"></i>
+          Excluir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/errors.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/modals.js" defer></script>
+  <script src="js/profile.js" defer></script>
+  <script src="js/ui-roles.js" defer></script>
+  <script src="js/alunos.js" defer></script>
+</body>
+</html>

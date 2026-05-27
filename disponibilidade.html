@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Calendário de disponibilidade: visualize e edite horários de aulas e disponibilidade dos professores." />
+  <meta name="theme-color" content="#032d6f" />
+  <title>Hey, Teacher! — Disponibilidade</title>
+  <script>try{var _t=localStorage.getItem('ht_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" /></noscript>
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" /></noscript>
+
+  <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" /></noscript>
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dark.css" />
+  <link rel="stylesheet" href="css/desktop.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+
+  <style>
+    /* ---- Legenda ---- */
+    .cal-legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: .8rem;
+      color: var(--text-secondary, #6b7280);
+    }
+    .cal-legend-item { display: flex; align-items: center; gap: 6px; }
+    .cal-legend-dot  { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+    /* ---- Toolbar externo (legenda + controles) ---- */
+    .cal-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .cal-outer-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* ---- Pills de dias da semana (multi-seleção no modo criar) ---- */
+    .avail-days-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .avail-day-btn {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 2px solid var(--gray-200, #e5e7eb);
+      background: transparent;
+      color: var(--text-secondary, #6b7280);
+      font-size: .8rem; font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .avail-day-btn:hover {
+      border-color: var(--color-primary, #032d6f);
+      color: var(--color-primary, #032d6f);
+    }
+    .avail-day-btn.active {
+      background: var(--color-primary, #032d6f);
+      border-color: var(--color-primary, #032d6f);
+      color: #fff;
+    }
+    [data-theme="dark"] .avail-day-btn { border-color: var(--gray-200); color: var(--gray-500); }
+    [data-theme="dark"] .avail-day-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    [data-theme="dark"] .avail-day-btn.active { color: #fff; }
+
+    /* ---- Calendário ---- */
+    #availCalendar { min-height: 600px; }
+    .fc .fc-timegrid-slot { height: 2.5em; }
+    .fc .fc-event-main { padding: 8px 8px; }
+    .fc-event-title { font-weight: 600; }
+    .fc-event-time  { font-size: .75rem; opacity: .85; }
+  </style>
+</head>
+<body class="app-page">
+
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list">
+        <!-- preenchido por sidebar.js -->
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="user-info" id="openProfileBtn" aria-label="Editar perfil">
+        <div class="user-avatar" id="sidebarAvatar" aria-hidden="true">
+          <span class="user-avatar-initials">P</span>
+        </div>
+        <div class="user-details">
+          <span class="user-name" id="sidebarUserName">Usuário</span>
+          <span class="user-role">Professor</span>
+        </div>
+        <i class="fa-solid fa-pen-to-square user-edit-icon" aria-hidden="true"></i>
+      </button>
+      <button class="btn-icon-only" id="settingsBtn" aria-label="Configurações">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title"><h2>Disponibilidade</h2></div>
+      <div class="topbar-actions" id="topbarActions">
+        <!-- botão "Adicionar horário" injetado pelo JS para professores -->
+      </div>
+    </header>
+
+    <main class="page-content" id="mainContent">
+
+      <!-- Abas de professor — visível apenas para admin -->
+      <div id="teacherTabsWrap" style="display:none">
+        <div class="app-tabs" id="teacherTabs" role="tablist" aria-label="Professores"></div>
+      </div>
+
+      <!-- Toolbar externo: legenda + controles de visualização + zoom -->
+      <div class="cal-toolbar">
+
+        <!-- Legenda de cores (esquerda) -->
+        <div class="cal-legend" id="calLegend">
+          <span class="cal-legend-item">
+            <span class="cal-legend-dot" style="background:#032d6f"></span>Aula de aluno
+          </span>
+          <span class="cal-legend-item">
+            <span class="cal-legend-dot" style="background:#16a34a"></span>Disponível
+          </span>
+          <span class="cal-legend-item">
+            <span class="cal-legend-dot" style="background:#dc2626"></span>Indisponível
+          </span>
+        </div>
+
+        <!-- Controles externos (direita) -->
+        <div class="cal-outer-controls">
+
+          <!-- Alternância de visualização -->
+          <div class="calendar-view-controls" role="group" aria-label="Selecionar visualização do calendário">
+            <button class="view-btn" id="availViewMonth">Mês</button>
+            <button class="view-btn view-btn--active" id="availViewWeek">Semana</button>
+            <button class="view-btn" id="availViewDay">Dia</button>
+          </div>
+
+</div>
+      </div>
+
+      <!-- Calendário principal -->
+      <div class="calendar-card">
+        <div id="availCalendar" role="application" aria-label="Calendário de disponibilidade"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ============ MODAL: Criar / Editar slot de disponibilidade ============ -->
+  <div class="modal-overlay" id="availModalOverlay" aria-hidden="true">
+    <div class="modal" id="availModal" role="dialog" aria-modal="true" aria-labelledby="availModalTitle">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="availModalTitle">Novo Horário</h3>
+        <button class="modal-close" id="availModalClose" aria-label="Fechar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form class="modal-body" id="availForm" novalidate>
+        <input type="hidden" id="availId" />
+
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="availTitle" class="form-label">Título</label>
+            <input type="text" id="availTitle" class="form-input" placeholder="Ex: Disponível para novas aulas" />
+          </div>
+          <div class="form-group">
+            <label for="availType" class="form-label">Tipo</label>
+            <select id="availType" class="form-select">
+              <option value="available">Disponível</option>
+              <option value="blocked">Indisponível</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="availRecurring" class="checkbox-input" checked />
+            <span class="checkbox-custom"></span>
+            <span>Repetir semanalmente</span>
+          </label>
+        </div>
+
+        <!-- Seletor de dia (para recorrente) -->
+        <div id="recurringFields">
+
+          <!-- Modo criar: pills de multi-seleção -->
+          <div class="form-group" id="recurringDaysMulti">
+            <label class="form-label">Dias da semana</label>
+            <div class="avail-days-grid" id="availDaysGrid" role="group" aria-label="Selecionar dias">
+              <button type="button" class="avail-day-btn" data-day="1" aria-pressed="false">Seg</button>
+              <button type="button" class="avail-day-btn" data-day="2" aria-pressed="false">Ter</button>
+              <button type="button" class="avail-day-btn" data-day="3" aria-pressed="false">Qua</button>
+              <button type="button" class="avail-day-btn" data-day="4" aria-pressed="false">Qui</button>
+              <button type="button" class="avail-day-btn" data-day="5" aria-pressed="false">Sex</button>
+              <button type="button" class="avail-day-btn" data-day="6" aria-pressed="false">Sáb</button>
+              <button type="button" class="avail-day-btn" data-day="0" aria-pressed="false">Dom</button>
+            </div>
+            <span class="form-error" id="availDayError"></span>
+          </div>
+
+          <!-- Modo editar: select único (inalterado) -->
+          <div class="form-group" id="recurringDaySingle" style="display:none">
+            <label for="availDay" class="form-label">Dia da semana</label>
+            <select id="availDay" class="form-select">
+              <option value="1">Segunda-feira</option>
+              <option value="2">Terça-feira</option>
+              <option value="3">Quarta-feira</option>
+              <option value="4">Quinta-feira</option>
+              <option value="5">Sexta-feira</option>
+              <option value="6">Sábado</option>
+              <option value="0">Domingo</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Data específica (para evento único) -->
+        <div id="specificFields" style="display:none">
+          <div class="form-group">
+            <label for="availDate" class="form-label">Data</label>
+            <input type="date" id="availDate" class="form-input" />
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="availStart" class="form-label">Início <span class="required">*</span></label>
+            <input type="time" id="availStart" class="form-input" required />
+            <span class="form-error" id="availStartError"></span>
+          </div>
+          <div class="form-group">
+            <label for="availEnd" class="form-label">Fim <span class="required">*</span></label>
+            <input type="time" id="availEnd" class="form-input" required />
+            <span class="form-error" id="availEndError"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="availNotes" class="form-label">Observações</label>
+          <textarea id="availNotes" class="form-textarea" rows="2" placeholder="Notas opcionais..."></textarea>
+        </div>
+
+        <div class="login-alert" id="availAlert" role="alert" aria-live="polite"></div>
+      </form>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="availModalCancel">Cancelar</button>
+        <button type="button" class="btn btn--danger" id="availDeleteBtn" style="display:none">
+          <i class="fa-solid fa-trash"></i> <span>Excluir</span>
+        </button>
+        <button type="submit" form="availForm" class="btn btn--primary" id="availSaveBtn">
+          <i class="fa-solid fa-floppy-disk"></i> <span>Salvar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: Info do evento de aluno (somente leitura) ============ -->
+  <div class="modal-overlay" id="studentEventOverlay" aria-hidden="true">
+    <div class="modal" id="studentEventModal" role="dialog" aria-modal="true" aria-labelledby="seTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="seTitle">Aula</h3>
+        <button class="modal-close" id="seClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p><i class="fa-solid fa-user-graduate" style="width:18px"></i> <span id="seStudent"></span></p>
+        <p><i class="fa-regular fa-clock" style="width:18px"></i> <span id="seTime"></span></p>
+        <p id="seNotesRow" style="display:none"><i class="fa-solid fa-note-sticky" style="width:18px"></i> <span id="seNotes"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="seCloseBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/pt-br.global.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/errors.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/modals.js" defer></script>
+  <script src="js/profile.js" defer></script>
+  <script src="js/ui-roles.js" defer></script>
+  <script src="js/disponibilidade.js" defer></script>
+</body>
+</html>

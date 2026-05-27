@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Registro e histórico de frequência das aulas com filtros por turma, aluno, status e período." />
+  <meta name="theme-color" content="#032d6f" />
+  <title>Hey, Teacher! — Frequência</title>
+  <script>try{var _t=localStorage.getItem('ht_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" /></noscript>
+
+  <!-- Icons -->
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" /></noscript>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dark.css" />
+  <link rel="stylesheet" href="css/desktop.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+</head>
+<body class="app-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list"><!-- preenchido por sidebar.js --></ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="user-info" id="openProfileBtn" aria-label="Editar perfil">
+        <div class="user-avatar" id="sidebarAvatar" aria-hidden="true">
+          <span class="user-avatar-initials">P</span>
+        </div>
+        <div class="user-details">
+          <span class="user-name" id="sidebarUserName">Professor</span>
+          <span class="user-role">Administrador</span>
+        </div>
+        <i class="fa-solid fa-pen-to-square user-edit-icon" aria-hidden="true"></i>
+      </button>
+      <button class="btn-icon-only" id="settingsBtn" aria-label="Configurações">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- Main Content -->
+  <div class="main-wrapper">
+
+    <!-- Top Header -->
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title">
+        <h2>Frequência</h2>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn--primary btn--sm" id="addAttendanceBtn">
+          <i class="fa-solid fa-plus"></i>
+          <span>Registrar Aula</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content" id="mainContent">
+
+      <!-- Summary Stats -->
+      <section class="stats-section stats-section--sm" aria-label="Resumo de frequência">
+        <div class="stats-grid stats-grid--4">
+          <div class="stat-card stat-card--sm">
+            <div class="stat-icon">
+              <i class="fa-regular fa-calendar-days"></i>
+            </div>
+            <div class="stat-body">
+              <span class="stat-label">Aulas este mês</span>
+              <span class="stat-value" id="statMonthLessons">0</span>
+            </div>
+          </div>
+          <div class="stat-card stat-card--sm stat-card--success">
+            <div class="stat-icon">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="stat-body">
+              <span class="stat-label">Presenças</span>
+              <span class="stat-value" id="statMonthPresent">0</span>
+            </div>
+          </div>
+          <div class="stat-card stat-card--sm stat-card--danger">
+            <div class="stat-icon">
+              <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+            <div class="stat-body">
+              <span class="stat-label">Faltas</span>
+              <span class="stat-value" id="statMonthAbsent">0</span>
+            </div>
+          </div>
+          <div class="stat-card stat-card--sm stat-card--info">
+            <div class="stat-icon">
+              <i class="fa-solid fa-percent"></i>
+            </div>
+            <div class="stat-body">
+              <span class="stat-label">Frequência média</span>
+              <span class="stat-value" id="statMonthRate">0%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filters -->
+      <section class="toolbar toolbar--stats-align" aria-label="Filtros de frequência">
+        <div class="search-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input
+            type="search"
+            id="attStudentSearch"
+            class="search-input"
+            placeholder="Buscar por nome do aluno..."
+            aria-label="Buscar aluno"
+          />
+        </div>
+
+        <div class="filter-group filter-group--dates">
+          <div class="date-filter">
+            <label for="attDateFrom" class="filter-label">De:</label>
+            <input type="date" id="attDateFrom" class="form-input" aria-label="Data inicial" />
+          </div>
+          <div class="date-filter">
+            <label for="attDateTo" class="filter-label">Até:</label>
+            <input type="date" id="attDateTo" class="form-input" aria-label="Data final" />
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <select class="form-select" id="attClassFilter" aria-label="Filtrar por turma">
+            <option value="">Todas as turmas</option>
+            <!-- Populated by JS -->
+          </select>
+
+          <select class="form-select" id="attStatusFilter" aria-label="Filtrar por status">
+            <option value="">Todos os status</option>
+            <option value="present">Presente</option>
+            <option value="absent">Ausente</option>
+            <option value="justified">Falta justificada</option>
+          </select>
+        </div>
+
+        <button class="btn btn--ghost" id="clearFiltersBtn">
+          <i class="fa-solid fa-filter-circle-xmark"></i>
+          Limpar filtros
+        </button>
+
+        <div class="results-count" id="attCount" aria-live="polite"></div>
+      </section>
+
+      <!-- Attendance Table -->
+      <section class="table-section" aria-label="Registros de frequência">
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3 class="table-card-title">Histórico de Frequência</h3>
+            <div class="table-actions">
+              <button class="btn btn--ghost btn--sm" id="exportAttBtn" title="Exportar dados">
+                <i class="fa-solid fa-file-arrow-down"></i>
+                Exportar
+              </button>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table data-table--attendance" id="attendanceTable" aria-label="Histórico de frequência">
+              <thead>
+                <tr>
+                  <th scope="col" class="sortable" data-sort="date">
+                    Data
+                    <i class="fa-solid fa-sort sort-icon"></i>
+                  </th>
+                  <th scope="col" class="sortable" data-sort="student">
+                    Aluno
+                    <i class="fa-solid fa-sort sort-icon"></i>
+                  </th>
+                  <th scope="col">Turma</th>
+                  <th scope="col" class="sortable" data-sort="status">
+                    Status
+                    <i class="fa-solid fa-sort sort-icon"></i>
+                  </th>
+                  <th scope="col">Observação</th>
+                  <th scope="col" class="col-actions">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceTableBody">
+                <tr class="empty-row">
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <i class="fa-regular fa-calendar-xmark empty-state-icon"></i>
+                      <p class="empty-state-title">Nenhum registro de frequência</p>
+                      <p class="empty-state-desc">Clique em "Registrar Aula" para adicionar</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="table-pagination" id="attPagination" aria-label="Paginação">
+            <span class="pagination-info" id="attPaginationInfo"></span>
+            <div class="pagination-controls">
+              <button class="pagination-btn" id="attPrevPage" aria-label="Página anterior" disabled>
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
+              <div class="pagination-pages" id="attPaginationPages"></div>
+              <button class="pagination-btn" id="attNextPage" aria-label="Próxima página" disabled>
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================== MODAL: Registrar / Editar Frequência ===================== -->
+  <div class="modal-overlay modal-overlay--large" id="attModalOverlay" aria-hidden="true">
+    <div class="modal modal--large" id="attModal" role="dialog" aria-modal="true" aria-labelledby="attModalTitle">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="attModalTitle">Registrar Aula</h3>
+        <button class="modal-close" id="attModalClose" aria-label="Fechar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form class="modal-body" id="attForm" novalidate>
+        <input type="hidden" id="attId" name="attId" />
+
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="attDate" class="form-label">Data da aula <span class="required">*</span></label>
+            <input type="date" id="attDate" name="date" class="form-input" required />
+            <span class="form-error" id="attDateError"></span>
+          </div>
+          <div class="form-group">
+            <label for="attClassSelect" class="form-label">Turma</label>
+            <select id="attClassSelect" name="classId" class="form-select">
+              <option value="">Aula individual / Sem turma</option>
+              <!-- Populated by JS -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Student Attendance List -->
+        <div class="form-group">
+          <label class="form-label">Frequência dos alunos <span class="required">*</span></label>
+          <div class="att-students-selector" id="attStudentsList">
+            <!-- Populated by JS based on selected class or all students -->
+            <div class="empty-state empty-state--sm">
+              <i class="fa-solid fa-users"></i>
+              <p>Selecione uma turma ou aguarde o carregamento dos alunos</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="att-quick-actions" id="attQuickActions">
+          <button type="button" class="btn btn--ghost btn--sm" id="markAllPresent">
+            <i class="fa-solid fa-circle-check"></i>
+            Todos presentes
+          </button>
+          <button type="button" class="btn btn--ghost btn--sm" id="markAllAbsent">
+            <i class="fa-solid fa-circle-xmark"></i>
+            Todos ausentes
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="attLessonContent" class="form-label">
+            <i class="fa-solid fa-book-open-reader" style="color:var(--color-primary);margin-right:6px;"></i>
+            Conteúdo ministrado
+            <span class="text-muted" style="font-weight:400"> (opcional)</span>
+          </label>
+          <textarea id="attLessonContent" name="lessonContent" class="form-textarea" placeholder="Ex: Present Perfect — uso com already / yet / just. Exercícios de speaking..." rows="2"></textarea>
+        </div>
+
+        <div class="form-group" id="attCurriculumGroup">
+          <label class="form-label">
+            <i class="fa-solid fa-list-check" style="color:var(--color-primary);margin-right:6px;"></i>
+            Vincular ao currículo
+            <span class="text-muted" style="font-weight:400"> (opcional — registra progresso nos alunos presentes)</span>
+          </label>
+          <div class="att-curriculum-picker" id="attCurriculumPicker">
+            <div class="att-curriculum-empty">Carregando conteúdos...</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="attGeneralNotes" class="form-label">Observações gerais</label>
+          <textarea id="attGeneralNotes" name="notes" class="form-textarea" placeholder="Outras anotações sobre a aula..." rows="2"></textarea>
+        </div>
+
+      </form>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="attModalCancel">Cancelar</button>
+        <button type="submit" form="attForm" class="btn btn--primary" id="saveAttBtn">
+          <i class="fa-solid fa-floppy-disk"></i>
+          Salvar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Editar Registro Individual ===================== -->
+  <div class="modal-overlay" id="attEditOverlay" aria-hidden="true">
+    <div class="modal" id="attEditModal" role="dialog" aria-modal="true" aria-labelledby="attEditTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="attEditTitle">Editar Frequência</h3>
+        <button class="modal-close" id="attEditClose" aria-label="Fechar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form class="modal-body" id="attEditForm" novalidate>
+        <input type="hidden" id="attEditId" name="id" />
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="attEditStudentSelect" class="form-label">Aluno <span class="required">*</span></label>
+            <select id="attEditStudentSelect" name="studentId" class="form-select" required>
+              <!-- Populated by JS -->
+            </select>
+            <span class="form-error" id="attEditStudentError"></span>
+          </div>
+          <div class="form-group">
+            <label for="attEditDate" class="form-label">Data</label>
+            <input type="date" id="attEditDate" name="date" class="form-input" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="attEditStatus" class="form-label">Status <span class="required">*</span></label>
+          <div class="radio-group" role="group" aria-labelledby="attEditStatus">
+            <label class="radio-label radio-label--present">
+              <input type="radio" name="status" value="present" class="radio-input" />
+              <span class="radio-custom"></span>
+              <i class="fa-solid fa-circle-check"></i>
+              Presente
+            </label>
+            <label class="radio-label radio-label--absent">
+              <input type="radio" name="status" value="absent" class="radio-input" />
+              <span class="radio-custom"></span>
+              <i class="fa-solid fa-circle-xmark"></i>
+              Ausente
+            </label>
+            <label class="radio-label radio-label--justified">
+              <input type="radio" name="status" value="justified" class="radio-input" />
+              <span class="radio-custom"></span>
+              <i class="fa-solid fa-circle-exclamation"></i>
+              Falta justificada
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="attEditLessonContent" class="form-label">
+            <i class="fa-solid fa-book-open-reader" style="color:var(--color-primary);margin-right:6px;"></i>
+            Conteúdo ministrado
+          </label>
+          <textarea id="attEditLessonContent" name="lessonContent" class="form-textarea" placeholder="Ex: Present Perfect — uso com already / yet / just..." rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="attEditNotes" class="form-label">Observação</label>
+          <textarea id="attEditNotes" name="notes" class="form-textarea" placeholder="Motivo da falta, observações..." rows="2"></textarea>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="attEditCancel">Cancelar</button>
+        <button type="submit" form="attEditForm" class="btn btn--primary">
+          <i class="fa-solid fa-floppy-disk"></i>
+          Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Confirmação de Exclusão ===================== -->
+  <div class="modal-overlay" id="deleteConfirmOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" id="deleteConfirmModal" role="alertdialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
+      <div class="modal-header">
+        <h3 class="modal-title modal-title--danger" id="deleteConfirmTitle">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Confirmar exclusão
+        </h3>
+      </div>
+      <div class="modal-body">
+        <p id="deleteConfirmDesc">Tem certeza que deseja excluir este registro?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="deleteCancel">Cancelar</button>
+        <button type="button" class="btn btn--danger" id="deleteConfirm">
+          <i class="fa-solid fa-trash"></i>
+          Excluir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/errors.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/modals.js" defer></script>
+  <script src="js/profile.js" defer></script>
+  <script src="js/ui-roles.js" defer></script>
+  <script src="js/frequencia.js" defer></script>
+</body>
+</html>

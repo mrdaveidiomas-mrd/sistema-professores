@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Gestão financeira com receitas, status de pagamentos, gráficos mensais e registros por aluno." />
+  <meta name="theme-color" content="#032d6f" />
+  <title>Hey, Teacher! — Finanças</title>
+  <script>try{var _t=localStorage.getItem('ht_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" /></noscript>
+
+  <!-- Icons -->
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" /></noscript>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dark.css" />
+  <link rel="stylesheet" href="css/desktop.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+</head>
+<body class="app-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list"><!-- preenchido por sidebar.js --></ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="user-info" id="openProfileBtn" aria-label="Editar perfil">
+        <div class="user-avatar" id="sidebarAvatar" aria-hidden="true">
+          <span class="user-avatar-initials">P</span>
+        </div>
+        <div class="user-details">
+          <span class="user-name" id="sidebarUserName">Professor</span>
+          <span class="user-role">Administrador</span>
+        </div>
+        <i class="fa-solid fa-pen-to-square user-edit-icon" aria-hidden="true"></i>
+      </button>
+      <button class="btn-icon-only" id="settingsBtn" aria-label="Configurações">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- Main Content -->
+  <div class="main-wrapper">
+
+    <!-- Top Header -->
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-title">
+        <h2>Finanças</h2>
+      </div>
+      <div class="topbar-actions">
+        <div class="period-selector">
+          <button class="btn btn--ghost btn--sm" id="prevMonthBtn" aria-label="Mês anterior">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <span class="period-label" id="currentPeriod"></span>
+          <button class="btn btn--ghost btn--sm" id="nextMonthBtn" aria-label="Próximo mês">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+        <button class="btn btn--primary btn--sm" id="addPaymentBtn">
+          <i class="fa-solid fa-plus"></i>
+          <span>Novo Pagamento</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content" id="mainContent">
+
+      <!-- ====================================================== -->
+      <!-- VIEW DO PROFESSOR (payout) — exibida só se role=teacher -->
+      <!-- ====================================================== -->
+      <div id="teacherFinanceView" data-teacher-only style="display:none">
+        <section class="finance-summary-section" aria-label="Meu repasse">
+          <div class="stat-card stat-card--finance-main">
+            <div class="stat-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+            <div class="stat-body">
+              <span class="stat-label">A receber no período</span>
+              <span class="stat-value stat-value--lg" id="payoutTotal">R$ 0,00</span>
+              <span class="stat-trend"><span id="payoutCount">0</span> aulas pagas</span>
+            </div>
+          </div>
+          <div class="stat-card stat-card--paid">
+            <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="stat-body">
+              <span class="stat-label">Aulas no período</span>
+              <span class="stat-value" id="payoutTotalLessons">0</span>
+            </div>
+          </div>
+          <div class="stat-card stat-card--pending">
+            <div class="stat-icon"><i class="fa-regular fa-circle-xmark"></i></div>
+            <div class="stat-body">
+              <span class="stat-label">Justificadas (não pagas)</span>
+              <span class="stat-value" id="payoutJustified">0</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="payments-section" aria-label="Detalhamento por aluno">
+          <div class="section-header">
+            <h3 class="section-title"><i class="fa-solid fa-user-graduate section-title-icon"></i> Por aluno</h3>
+          </div>
+          <div class="table-card">
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr><th>Aluno</th><th>Aulas pagas</th><th>Total</th></tr>
+                </thead>
+                <tbody id="payoutByStudentBody">
+                  <tr class="empty-row"><td colspan="3"><div class="empty-state empty-state--sm"><p>Sem aulas no período.</p></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="payments-section" aria-label="Aulas detalhadas">
+          <div class="section-header">
+            <h3 class="section-title"><i class="fa-solid fa-list section-title-icon"></i> Aulas no período</h3>
+          </div>
+          <div class="table-card">
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr><th>Data</th><th>Aluno</th><th>Status</th><th>Valor</th></tr>
+                </thead>
+                <tbody id="payoutItemsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ====================================================== -->
+      <!-- VIEW DO ADMIN (mensalidades da escola)                 -->
+      <!-- ====================================================== -->
+      <div id="adminFinanceView" data-admin-only>
+
+        <!-- Tabs: Receitas / Pagamentos -->
+        <div class="app-tabs" role="tablist" aria-label="Visões de finanças">
+          <button class="app-tab app-tab--active" id="tabReceitas"
+                  role="tab" aria-selected="true" aria-controls="receitasPanel">
+            <i class="fa-solid fa-arrow-trend-up"></i> Receitas
+          </button>
+          <button class="app-tab" id="tabPagamentos"
+                  role="tab" aria-selected="false" aria-controls="pagamentosPanel">
+            <i class="fa-solid fa-hand-holding-dollar"></i> Pagamentos
+          </button>
+        </div>
+
+        <!-- ====================== PAINEL RECEITAS ====================== -->
+        <div id="receitasPanel" role="tabpanel" aria-labelledby="tabReceitas">
+
+      <!-- ===== SECTION 1: Financial Summary ===== -->
+      <!-- Grid unificado: 4 colunas para cards + gráficos alinhados -->
+      <section class="finance-summary-section" aria-label="Resumo financeiro">
+
+        <!-- Stat cards — cada um ocupa 1 coluna -->
+        <div class="stat-card stat-card--finance-main">
+          <div class="stat-icon">
+            <i class="fa-solid fa-circle-dollar-to-slot"></i>
+          </div>
+          <div class="stat-body">
+            <span class="stat-label">Receita Total do Mês</span>
+            <span class="stat-value stat-value--lg" id="finTotalMonth">R$ 0,00</span>
+            <span class="stat-trend" id="finTrend">
+              <i class="fa-solid fa-arrow-trend-up"></i>
+              <span id="finTrendValue">0%</span> vs mês anterior
+            </span>
+          </div>
+        </div>
+
+        <div class="stat-card stat-card--paid">
+          <div class="stat-icon">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div class="stat-body">
+            <span class="stat-label">Recebido</span>
+            <span class="stat-value" id="finPaidMonth">R$ 0,00</span>
+          </div>
+        </div>
+
+        <div class="stat-card stat-card--pending">
+          <div class="stat-icon">
+            <i class="fa-regular fa-clock"></i>
+          </div>
+          <div class="stat-body">
+            <span class="stat-label">Pendente</span>
+            <span class="stat-value" id="finPendingMonth">R$ 0,00</span>
+          </div>
+        </div>
+
+        <div class="stat-card stat-card--overdue">
+          <div class="stat-icon">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div class="stat-body">
+            <span class="stat-label">Em Atraso</span>
+            <span class="stat-value" id="finOverdueMonth">R$ 0,00</span>
+          </div>
+        </div>
+
+        <!-- Gráfico de barras — colunas 1 a 3 (alinha com Receita Total + Recebido + Pendente) -->
+        <div class="chart-card chart-card--bar">
+          <div class="chart-card-header">
+            <h3 class="chart-title">
+              <i class="fa-solid fa-chart-column"></i>
+              Receita Mensal
+            </h3>
+            <select class="form-select form-select--sm" id="revenueChartYear" aria-label="Selecionar ano">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="revenueChart" aria-label="Gráfico de receita mensal" role="img"></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfico de pizza — coluna 4 (alinha com Em Atraso) -->
+        <div class="chart-card chart-card--doughnut">
+          <div class="chart-card-header">
+            <h3 class="chart-title">
+              <i class="fa-solid fa-chart-pie"></i>
+              Status de Pagamentos
+            </h3>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="statusChart" aria-label="Gráfico de status de pagamentos" role="img"></canvas>
+          </div>
+          <div class="chart-legend" id="statusChartLegend">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===== SECTION 2: Payment Records ===== -->
+      <section class="payments-section" aria-label="Registros de pagamento">
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="fa-solid fa-receipt section-title-icon"></i>
+            Pagamentos
+          </h3>
+        </div>
+
+        <!-- Toolbar: filters + view toggle -->
+        <div class="payments-toolbar">
+          <div class="payment-filters">
+            <div class="search-wrapper">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input
+                type="search"
+                id="paymentSearch"
+                class="search-input"
+                placeholder="Buscar aluno..."
+                aria-label="Buscar pagamento por aluno"
+              />
+            </div>
+            <select class="form-select" id="paymentStatusFilter" aria-label="Filtrar por status">
+              <option value="">Todos os status</option>
+              <option value="paid">Pago</option>
+              <option value="pending">Pendente</option>
+              <option value="overdue">Em atraso</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;grid-column:-2/-1;justify-self:end">
+            <button class="btn btn--ghost" id="exportFinancesBtn" title="Exportar mês atual em PDF" style="height:40px;padding:0 14px">
+              <i class="fa-solid fa-file-pdf"></i>
+              <span>Exportar PDF</span>
+            </button>
+            <div class="table-view-toggle" role="group" aria-label="Modo de visualização">
+              <button class="view-toggle-btn view-toggle-btn--active" id="viewCards" aria-pressed="true" title="Visualização em cards">
+                <i class="fa-solid fa-table-cells"></i>
+              </button>
+              <button class="view-toggle-btn" id="viewTable" aria-pressed="false" title="Visualização em tabela">
+                <i class="fa-solid fa-table-list"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payments by Student (Card view) -->
+        <div class="payment-cards-grid" id="paymentCardsGrid" aria-label="Pagamentos por aluno">
+          <!-- Populated by JS -->
+          <div class="empty-state" id="emptyPayments">
+            <i class="fa-solid fa-receipt empty-state-icon"></i>
+            <p class="empty-state-title">Nenhum pagamento registrado</p>
+            <p class="empty-state-desc">Clique em "Novo Pagamento" para adicionar</p>
+            <button class="btn btn--primary" id="addFirstPaymentBtn">
+              <i class="fa-solid fa-plus"></i>
+              Registrar Pagamento
+            </button>
+          </div>
+        </div>
+
+        <!-- All Payments Table (Table view) -->
+        <div class="table-card" id="paymentsTableCard" style="display:none">
+
+          <div class="table-wrapper" id="paymentsTableWrapper">
+            <table class="data-table" id="paymentsTable" aria-label="Tabela de pagamentos">
+              <thead>
+                <tr>
+                  <th scope="col" class="sortable" data-sort="student">
+                    Aluno <i class="fa-solid fa-sort sort-icon"></i>
+                  </th>
+                  <th scope="col" class="sortable" data-sort="reference">
+                    Referência <i class="fa-solid fa-sort sort-icon"></i>
+                  </th>
+                  <th scope="col" class="sortable" data-sort="amount">
+                    Valor <i class="fa-solid fa-sort sort-icon"></i>
+                  </th>
+                  <th scope="col">Vencimento</th>
+                  <th scope="col" class="sortable" data-sort="status">
+                    Status <i class="fa-solid fa-sort sort-icon"></i>
+                  </th>
+                  <th scope="col">Data pag.</th>
+                  <th scope="col">Método</th>
+                  <th scope="col" class="col-actions">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="paymentsTableBody">
+                <tr class="empty-row">
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <i class="fa-solid fa-receipt empty-state-icon"></i>
+                      <p>Nenhum pagamento encontrado</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="table-pagination" id="paymentPagination">
+            <span class="pagination-info" id="paymentPaginationInfo"></span>
+            <div class="pagination-controls">
+              <button class="pagination-btn" id="payPrevPage" aria-label="Página anterior" disabled>
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
+              <div class="pagination-pages" id="payPaginationPages"></div>
+              <button class="pagination-btn" id="payNextPage" aria-label="Próxima página" disabled>
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+        </div><!-- /#receitasPanel -->
+
+        <!-- ====================== PAINEL PAGAMENTOS ====================== -->
+        <div id="pagamentosPanel" role="tabpanel" aria-labelledby="tabPagamentos" hidden>
+
+          <section class="finance-summary-section" aria-label="Resumo de pagamentos a professores">
+            <div class="stat-card stat-card--finance-main">
+              <div class="stat-icon">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Total a Pagar no Mês</span>
+                <span class="stat-value stat-value--lg" id="payoutsTotalMonth">R$ 0,00</span>
+                <span class="stat-trend">
+                  <span id="payoutsTeacherCount">0</span> professor(es)
+                </span>
+              </div>
+            </div>
+
+            <div class="stat-card stat-card--paid">
+              <div class="stat-icon">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Aulas Pagas</span>
+                <span class="stat-value" id="payoutsPaidLessons">0</span>
+              </div>
+            </div>
+
+            <div class="stat-card stat-card--pending">
+              <div class="stat-icon">
+                <i class="fa-regular fa-circle-xmark"></i>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Justificadas (não pagas)</span>
+                <span class="stat-value" id="payoutsJustifiedLessons">0</span>
+              </div>
+            </div>
+
+            <div class="stat-card stat-card--overdue">
+              <div class="stat-icon">
+                <i class="fa-solid fa-list-check"></i>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Total de Aulas</span>
+                <span class="stat-value" id="payoutsTotalLessons">0</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="payments-section" aria-label="Salários por professor">
+            <div class="section-header">
+              <h3 class="section-title">
+                <i class="fa-solid fa-chalkboard-user section-title-icon"></i>
+                Salários por Professor
+              </h3>
+            </div>
+
+            <div class="table-card">
+              <div class="table-wrapper">
+                <table class="data-table" aria-label="Tabela de salários por professor">
+                  <thead>
+                    <tr>
+                      <th scope="col">Professor</th>
+                      <th scope="col">Aulas pagas</th>
+                      <th scope="col">Justificadas</th>
+                      <th scope="col">Total de aulas</th>
+                      <th scope="col">A receber</th>
+                    </tr>
+                  </thead>
+                  <tbody id="payoutsTableBody">
+                    <tr class="empty-row">
+                      <td colspan="5">
+                        <div class="empty-state empty-state--sm">
+                          <p>Sem dados no período.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+        </div><!-- /#pagamentosPanel -->
+
+      </div><!-- /#adminFinanceView -->
+
+    </main>
+  </div>
+
+  <!-- ===================== MODAL: Novo / Editar Pagamento ===================== -->
+  <div class="modal-overlay" id="paymentModalOverlay" aria-hidden="true">
+    <div class="modal" id="paymentModal" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
+
+      <div class="modal-header">
+        <h3 class="modal-title" id="paymentModalTitle">Novo Pagamento</h3>
+        <button class="modal-close" id="paymentModalClose" aria-label="Fechar modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form class="modal-body" id="paymentForm" novalidate>
+        <input type="hidden" id="paymentId" name="paymentId" />
+
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="paymentStudent" class="form-label">Aluno <span class="required">*</span></label>
+            <select id="paymentStudent" name="studentId" class="form-select" required>
+              <option value="">Selecione o aluno</option>
+              <!-- Populated by JS -->
+            </select>
+            <span class="form-error" id="paymentStudentError"></span>
+          </div>
+          <div class="form-group">
+            <label for="paymentReference" class="form-label">Referência <span class="required">*</span></label>
+            <input type="month" id="paymentReference" name="reference" class="form-input" required />
+            <span class="form-error" id="paymentRefError"></span>
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="paymentAmount" class="form-label">Valor (R$) <span class="required">*</span></label>
+            <input type="number" id="paymentAmount" name="amount" class="form-input" placeholder="0,00" min="0" step="0.01" required />
+            <span class="form-error" id="paymentAmountError"></span>
+          </div>
+          <div class="form-group">
+            <label for="paymentDueDate" class="form-label">Data de vencimento</label>
+            <input type="date" id="paymentDueDate" name="dueDate" class="form-input" />
+          </div>
+        </div>
+
+        <div class="form-row form-row--2">
+          <div class="form-group">
+            <label for="paymentStatus" class="form-label">Status <span class="required">*</span></label>
+            <select id="paymentStatus" name="status" class="form-select" required>
+              <option value="pending">Pendente</option>
+              <option value="paid">Pago</option>
+              <option value="overdue">Em atraso</option>
+            </select>
+          </div>
+          <div class="form-group" id="paymentDateGroup">
+            <label for="paymentDate" class="form-label">Data do pagamento</label>
+            <input type="date" id="paymentDate" name="paidDate" class="form-input" />
+          </div>
+        </div>
+
+        <div class="form-group" id="paymentMethodGroup">
+          <label for="paymentMethod" class="form-label">Método de pagamento</label>
+          <div class="payment-method-group" role="group" aria-label="Método de pagamento">
+            <label class="method-label">
+              <input type="radio" name="method" value="pix" class="radio-input" />
+              <span class="method-btn">
+                <i class="fa-brands fa-pix"></i>
+                PIX
+              </span>
+            </label>
+            <label class="method-label">
+              <input type="radio" name="method" value="cash" class="radio-input" />
+              <span class="method-btn">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                Dinheiro
+              </span>
+            </label>
+            <label class="method-label">
+              <input type="radio" name="method" value="transfer" class="radio-input" />
+              <span class="method-btn">
+                <i class="fa-solid fa-building-columns"></i>
+                Transferência
+              </span>
+            </label>
+            <label class="method-label">
+              <input type="radio" name="method" value="card" class="radio-input" />
+              <span class="method-btn">
+                <i class="fa-regular fa-credit-card"></i>
+                Cartão
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="paymentNotes" class="form-label">Observações</label>
+          <textarea id="paymentNotes" name="notes" class="form-textarea" placeholder="Observações sobre o pagamento..." rows="2"></textarea>
+        </div>
+
+      </form>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="paymentModalCancel">Cancelar</button>
+        <button type="submit" form="paymentForm" class="btn btn--primary" id="savePaymentBtn">
+          <i class="fa-solid fa-floppy-disk"></i>
+          Salvar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Confirmação de Exclusão ===================== -->
+  <div class="modal-overlay" id="deleteConfirmOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" id="deleteConfirmModal" role="alertdialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
+      <div class="modal-header">
+        <h3 class="modal-title modal-title--danger" id="deleteConfirmTitle">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Confirmar exclusão
+        </h3>
+      </div>
+      <div class="modal-body">
+        <p id="deleteConfirmDesc">Tem certeza que deseja excluir este pagamento?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="deleteCancel">Cancelar</button>
+        <button type="button" class="btn btn--danger" id="deleteConfirm">
+          <i class="fa-solid fa-trash"></i>
+          Excluir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/errors.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/modals.js" defer></script>
+  <script src="js/profile.js" defer></script>
+  <script src="js/ui-roles.js" defer></script>
+  <script src="js/payouts.js" defer></script>
+  <script src="js/financas.js" defer></script>
+  <script src="js/financas-teacher.js" defer></script>
+</body>
+</html>

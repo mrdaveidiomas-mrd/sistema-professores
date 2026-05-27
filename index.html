@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Hey, Teacher! — Sistema de gestão para professores particulares. Gerencie alunos, turmas, frequência e finanças em um só lugar." />
+  <meta name="theme-color" content="#032d6f" />
+  <title>Hey, Teacher! — Login</title>
+  <script>try{var _t=localStorage.getItem('ht_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=optional" /></noscript>
+
+  <!-- Icons -->
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" /></noscript>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dark.css" />
+  <link rel="stylesheet" href="css/desktop.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+</head>
+<body class="login-page">
+
+  <!-- Animated background -->
+  <div class="login-bg" aria-hidden="true">
+    <div class="login-bg__shape login-bg__shape--1"></div>
+    <div class="login-bg__shape login-bg__shape--2"></div>
+    <div class="login-bg__shape login-bg__shape--3"></div>
+  </div>
+
+  <main class="login-container">
+
+    <!-- Logo / Brand -->
+    <header class="login-header">
+      <div class="login-logo">
+        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="login-logo-img" width="1272" height="871" style="border-radius:10px;"/>
+      </div>
+      <p class="login-subtitle">Sistema de Gestão</p>
+    </header>
+
+    <!-- Login Form -->
+    <section class="login-card" aria-label="Formulário de login">
+      <form class="login-form" id="loginForm" novalidate>
+
+        <div class="form-group">
+          <label for="email" class="form-label">E-mail</label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-envelope input-icon"></i>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-input"
+              placeholder="seu@email.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+          <span class="form-error" id="emailError" role="alert"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Senha</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="form-input"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="input-toggle-password" id="togglePassword" aria-label="Mostrar/ocultar senha">
+              <i class="fa-regular fa-eye" id="toggleIcon"></i>
+            </button>
+          </div>
+          <span class="form-error" id="passwordError" role="alert"></span>
+        </div>
+
+        <div class="login-options">
+          <label class="checkbox-label">
+            <input type="checkbox" id="rememberMe" name="rememberMe" class="checkbox-input" />
+            <span class="checkbox-custom"></span>
+            <span>Lembrar de mim</span>
+          </label>
+          <button type="button" class="link-subtle" id="forgotPassword">Esqueci a senha</button>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--full" id="loginBtn">
+          <span class="btn-text">Entrar</span>
+          <i class="fa-solid fa-arrow-right-to-bracket btn-icon"></i>
+          <span class="btn-loader" aria-hidden="true"></span>
+        </button>
+
+        <div class="login-alert" id="loginAlert" role="alert" aria-live="polite"></div>
+
+      </form>
+    </section>
+
+    <footer class="login-footer">
+      <p>&copy; 2026 Hey, Teacher! — Todos os direitos reservados</p>
+    </footer>
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/errors.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+</body>
+</html>
