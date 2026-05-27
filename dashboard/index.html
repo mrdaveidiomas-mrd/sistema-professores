@@ -24,10 +24,10 @@
   <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" /></noscript>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/base.css" />
-  <link rel="stylesheet" href="css/dark.css" />
-  <link rel="stylesheet" href="css/desktop.css" />
-  <link rel="stylesheet" href="css/mobile.css" />
+  <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/dark.css" />
+  <link rel="stylesheet" href="/css/desktop.css" />
+  <link rel="stylesheet" href="/css/mobile.css" />
 </head>
 <body class="app-page">
 
@@ -35,7 +35,7 @@
   <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
     <div class="sidebar-header">
       <div class="sidebar-logo">
-        <img src="images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
+        <img src="/images/logo-azul.png" alt="Hey, Teacher!" class="sidebar-logo-img" width="1272" height="871" />
       </div>
       <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
         <i class="fa-solid fa-xmark"></i>
@@ -89,7 +89,7 @@
       <section class="stats-section" aria-label="Resumo">
         <div class="stats-grid">
 
-          <a href="alunos.html" class="stat-card stat-card--primary">
+          <a href="/alunos/" class="stat-card stat-card--primary">
             <i class="fa-solid fa-user-graduate stat-card-icon"></i>
             <div class="stat-body">
               <span class="stat-label">Alunos Ativos</span>
@@ -98,7 +98,7 @@
             <i class="fa-solid fa-arrow-right stat-card-arrow"></i>
           </a>
 
-          <a href="turmas.html" class="stat-card stat-card--secondary">
+          <a href="/turmas/" class="stat-card stat-card--secondary">
             <i class="fa-solid fa-users stat-card-icon"></i>
             <div class="stat-body">
               <span class="stat-label">Turmas</span>
@@ -107,7 +107,7 @@
             <i class="fa-solid fa-arrow-right stat-card-arrow"></i>
           </a>
 
-          <a href="frequencia.html" class="stat-card stat-card--success">
+          <a href="/frequencia/" class="stat-card stat-card--success">
             <i class="fa-solid fa-calendar-check stat-card-icon"></i>
             <div class="stat-body">
               <span class="stat-label">Frequência do Mês</span>
@@ -116,7 +116,7 @@
             <i class="fa-solid fa-arrow-right stat-card-arrow"></i>
           </a>
 
-          <a href="financas.html" class="stat-card stat-card--finance" id="statRevenueCard">
+          <a href="/financas/" class="stat-card stat-card--finance" id="statRevenueCard">
             <i class="fa-solid fa-circle-dollar-to-slot stat-card-icon"></i>
             <div class="stat-body">
               <span class="stat-label" id="statRevenueLabel">Receita do Mês</span>
@@ -171,7 +171,7 @@
             <i class="fa-solid fa-rotate-right section-title-icon"></i>
             Pendentes de Reposição
           </h3>
-          <a href="frequencia.html" class="text-small" style="color:var(--color-primary);text-decoration:none">Registrar reposição →</a>
+          <a href="/frequencia/" class="text-small" style="color:var(--color-primary);text-decoration:none">Registrar reposição →</a>
         </div>
         <div class="upcoming-list" id="pendingMakeupsList"><!-- Populated by JS --></div>
       </section>
@@ -185,18 +185,18 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/supabase.js" defer></script>
-  <script src="js/theme.js" defer></script>
-  <script src="js/utils.js" defer></script>
-  <script src="js/errors.js" defer></script>
-  <script src="js/auth.js" defer></script>
-  <script src="js/storage.js" defer></script>
-  <script src="js/sidebar.js" defer></script>
-  <script src="js/modals.js" defer></script>
-  <script src="js/calendar.js" defer></script>
-  <script src="js/profile.js" defer></script>
-  <script src="js/ui-roles.js" defer></script>
-  <script src="js/payouts.js" defer></script>
-  <script src="js/dashboard.js" defer></script>
+  <script src="/js/supabase.js" defer></script>
+  <script src="/js/theme.js" defer></script>
+  <script src="/js/utils.js" defer></script>
+  <script src="/js/errors.js" defer></script>
+  <script src="/js/auth.js" defer></script>
+  <script src="/js/storage.js" defer></script>
+  <script src="/js/sidebar.js" defer></script>
+  <script src="/js/modals.js" defer></script>
+  <script src="/js/calendar.js" defer></script>
+  <script src="/js/profile.js" defer></script>
+  <script src="/js/ui-roles.js" defer></script>
+  <script src="/js/payouts.js" defer></script>
+  <script src="/js/dashboard.js" defer></script>
 </body>
 </html>

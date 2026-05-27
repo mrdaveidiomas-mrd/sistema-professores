@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!picker) return;
 
     if (!allProgCats.length || !allProgConts.length) {
-      picker.innerHTML = `<div class="att-curriculum-empty">Nenhum conteúdo cadastrado no currículo. Configure em <a href="progresso.html" style="color:var(--color-primary)">Progresso → Currículo</a>.</div>`;
+      picker.innerHTML = `<div class="att-curriculum-empty">Nenhum conteúdo cadastrado no currículo. Configure em <a href="/progresso/" style="color:var(--color-primary)">Progresso → Currículo</a>.</div>`;
       return;
     }
 

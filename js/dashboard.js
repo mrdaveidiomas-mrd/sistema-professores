@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const labelEl = document.getElementById('statRevenueLabel');
       const cardEl  = document.getElementById('statRevenueCard');
       if (labelEl) labelEl.textContent = 'Pagamento do Mês';
-      if (cardEl)  cardEl.href = 'financas.html';
+      if (cardEl)  cardEl.href = '/financas/';
     }
   }
 

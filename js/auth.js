@@ -57,23 +57,23 @@ HT.auth = (() => {
   async function logout() {
     clearRoleCache();
     await db.auth.signOut();
-    window.location.href = 'index.html';
+    window.location.href = '/';
   }
 
   /* ====== Proteção de rotas ====== */
   async function requireAuth() {
     const ok = await isAuthenticated();
-    if (!ok) window.location.replace('index.html');
+    if (!ok) window.location.replace('/');
   }
 
-  /* Páginas restritas a admin (lista) */
-  const ADMIN_ONLY_PAGES = ['professores.html'];
+  /* Seções restritas a admin (segmento da URL: /professores/) */
+  const ADMIN_ONLY_SECTIONS = ['professores'];
 
   async function requireAdmin() {
     await requireAuth();
     const role = await getRole();
     if (role !== 'admin') {
-      window.location.replace('dashboard.html');
+      window.location.replace('/dashboard/');
     }
   }
 
@@ -99,8 +99,12 @@ HT.auth = (() => {
 
   /* ====== Auto-init ====== */
   (() => {
-    const page        = window.location.pathname.split('/').pop() || 'index.html';
-    const publicPages = ['index.html', ''];
+    // Determina a "seção" atual a partir da URL:
+    //   /                 → ""        (página de login)
+    //   /dashboard/       → "dashboard"
+    //   /professores/     → "professores"
+    const section = window.location.pathname.split('/').filter(Boolean)[0] || '';
+    const isPublic = section === ''; // raiz = login
 
     function onReady(fn) {
       if (document.readyState === 'loading')
@@ -108,12 +112,12 @@ HT.auth = (() => {
       else fn();
     }
 
-    if (!publicPages.includes(page)) {
+    if (!isPublic) {
       onReady(async () => {
         await requireAuth();
-        if (ADMIN_ONLY_PAGES.includes(page)) {
+        if (ADMIN_ONLY_SECTIONS.includes(section)) {
           const role = await getRole();
-          if (role !== 'admin') { window.location.replace('dashboard.html'); return; }
+          if (role !== 'admin') { window.location.replace('/dashboard/'); return; }
         }
         await populateUserInfo();
       });
@@ -121,7 +125,7 @@ HT.auth = (() => {
       onReady(async () => {
         const authenticated = await isAuthenticated();
         if (authenticated) {
-          window.location.replace('dashboard.html');
+          window.location.replace('/dashboard/');
           return;
         }
         initLoginForm();
@@ -174,7 +178,7 @@ HT.auth = (() => {
         return;
       }
       const { error } = await db.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/index.html',
+        redirectTo: window.location.origin + '/',
       });
       if (error) {
         alertBox.textContent = error.message;
@@ -217,7 +221,7 @@ HT.auth = (() => {
 
         alertBox.textContent = 'Acesso autorizado. Redirecionando...';
         alertBox.className   = 'login-alert success';
-        setTimeout(() => window.location.replace('dashboard.html'), 800);
+        setTimeout(() => window.location.replace('/dashboard/'), 800);
       } else {
         alertBox.textContent = result.message;
         alertBox.className   = 'login-alert error';
