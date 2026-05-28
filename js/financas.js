@@ -613,7 +613,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       </div>
       ${summaryHTML}
       ${bodyHTML}
-      <div class="footer">Hey, Teacher! — relatório gerado automaticamente</div>
+      <div class="footer">Mr. Dave Idiomas — relatório gerado automaticamente</div>
       <script>setTimeout(() => window.print(), 250);<\/script>
     </body></html>`;
 

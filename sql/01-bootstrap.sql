@@ -1,5 +1,5 @@
 -- =========================================================================
--- HEY, TEACHER! / Mr-Dave — BOOTSTRAP completo do banco
+-- MR. DAVE IDIOMAS — BOOTSTRAP completo do banco
 -- =========================================================================
 -- ⚠️  ATENÇÃO: ESTE SCRIPT É DESTRUTIVO. Faz `drop cascade` em todas as
 --    tabelas do esquema `public` (na seção 0) e recria do zero.

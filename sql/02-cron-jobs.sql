@@ -1,5 +1,5 @@
 -- =========================================================================
--- HEY, TEACHER! / Mr-Dave — Jobs agendados (pg_cron + Edge Function)
+-- MR. DAVE IDIOMAS — Jobs agendados (pg_cron + Edge Function)
 -- =========================================================================
 -- Idempotente. Rodar DEPOIS de:
 --   • 01-bootstrap.sql (cria as tabelas e policies)
