@@ -16,6 +16,29 @@ HT.storage = (() => {
     return user.id;
   }
 
+  /**
+   * Gera um UUID v4. Usa crypto.randomUUID() quando disponível (HTTPS +
+   * navegador moderno); caso contrário, faz fallback via crypto.getRandomValues
+   * e, em último caso, Math.random. Evita "crypto.randomUUID is not a function"
+   * em contextos não-seguros (HTTP) ou navegadores antigos.
+   */
+  function _uuid() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+      const b = crypto.getRandomValues(new Uint8Array(16));
+      b[6] = (b[6] & 0x0f) | 0x40; // versão 4
+      b[8] = (b[8] & 0x3f) | 0x80; // variante
+      const h = [...b].map(x => x.toString(16).padStart(2, '0'));
+      return `${h[0]}${h[1]}${h[2]}${h[3]}-${h[4]}${h[5]}-${h[6]}${h[7]}-${h[8]}${h[9]}-${h[10]}${h[11]}${h[12]}${h[13]}${h[14]}${h[15]}`;
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+
   /* ====================================================================
      MAPPERS
      ==================================================================== */
@@ -991,7 +1014,7 @@ HT.storage = (() => {
     if (file.size > MAX_FILE_MB * 1024 * 1024) {
       throw new Error(`O arquivo excede o limite de ${MAX_FILE_MB} MB.`);
     }
-    const path = `${crypto.randomUUID()}.${ext}`;
+    const path = `${_uuid()}.${ext}`;
     const { data, error } = await db.storage
       .from(MATERIALS_BUCKET)
       .upload(path, file, { contentType: file.type, upsert: false });
