@@ -1,0 +1,26 @@
+{
+  "name": "Mr. Dave Idiomas — Sistema",
+  "short_name": "Mr. Dave",
+  "description": "Sistema de gestão escolar — alunos, turmas, frequência e finanças.",
+  "start_url": "/dashboard/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0f1d",
+  "theme_color": "#032d6f",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/images/logo-mrdave.png",
+      "sizes": "1080x1080",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logo-mrdave.png",
+      "sizes": "1080x1080",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
