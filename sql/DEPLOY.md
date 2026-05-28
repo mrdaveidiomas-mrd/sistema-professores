@@ -1,4 +1,4 @@
-# Deploy SQL — Mr-Dave / Hey, Teacher!
+# Deploy SQL — Mr. Dave Idiomas
 
 Guia completo para deploy do banco em uma conta Supabase **nova/limpa**.
 

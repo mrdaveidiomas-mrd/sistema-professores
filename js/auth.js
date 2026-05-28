@@ -219,7 +219,7 @@ HT.auth = (() => {
           else                     localStorage.removeItem(REMEMBERED_EMAIL_KEY);
         } catch { /* silencioso */ }
 
-        alertBox.textContent = 'Acesso autorizado. Redirecionando...';
+        alertBox.textContent = 'Acesso autorizado.';
         alertBox.className   = 'login-alert success';
         setTimeout(() => window.location.replace('/dashboard/'), 800);
       } else {
