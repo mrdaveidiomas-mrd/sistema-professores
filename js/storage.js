@@ -669,6 +669,10 @@ HT.storage = (() => {
       email,
       options: {
         shouldCreateUser: true,
+        // Redireciona o link de confirmação para o domínio atual (não localhost).
+        // O redirect também precisa estar na allowlist do Supabase
+        // (Authentication → URL Configuration → Redirect URLs).
+        emailRedirectTo: window.location.origin + '/',
         data: {
           name:                 name        || null,
           default_lesson_rate:  defaultRate ?? null,
