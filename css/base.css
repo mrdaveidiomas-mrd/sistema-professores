@@ -2452,8 +2452,8 @@ h1,h2,h3,h4,h5,h6 { font-weight: 600; line-height: 1.3; }
 .payments-section { animation: slideUp .5s .15s both; }
 #teacherFinanceView .payments-section .section-header { margin-top: 24px; margin-bottom: 8px;}
 
-/* Section header inside payments has no bottom margin — toolbar handles spacing */
-.payments-section .section-header { margin-bottom: 0; }
+/* Add Section header inside payments some spacing */
+.payments-section .section-header { margin-bottom: 12px; }
 
 .payments-toolbar {
   display: flex;
