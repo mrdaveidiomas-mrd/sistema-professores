@@ -9,10 +9,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* ====== Estado ====== */
   let allStudents    = [];
   let allClasses     = [];
+  let allCourses     = [];
   let allCategories  = [];
   let allContents    = [];
   let allProgress    = [];
   let currentStudentId = null;
+  let currentCourseId  = null;   /* curso ativo no painel Currículo */
   let pendingDelete  = { type: null, id: null };
 
   /* Estado do modal de progresso (guias + paginação) */
@@ -22,9 +24,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ====== Carregar tudo ====== */
   async function load() {
-    [allStudents, allClasses, allCategories, allContents, allProgress] = await Promise.all([
+    [allStudents, allClasses, allCourses, allCategories, allContents, allProgress] = await Promise.all([
       storage.getStudents(),
       storage.getClasses(),
+      storage.getCourses(),
       storage.getProgressCategories(),
       storage.getProgressContents(),
       storage.getAllStudentProgress(),
@@ -34,8 +37,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* ====== Helpers ====== */
   const findStudent  = id => allStudents.find(s => s.id === id) || null;
   const findClass    = id => allClasses.find(c => c.id === id) || null;
+  const findCourse   = id => allCourses.find(c => c.id === id) || null;
   const findCategory = id => allCategories.find(c => c.id === id) || null;
   const findContent  = id => allContents.find(c => c.id === id) || null;
+
+  /** Categorias do curso (ou de currentCourseId se omitido) */
+  function categoriesOfCourse(courseId) {
+    const cid = courseId ?? currentCourseId;
+    return allCategories.filter(c => c.courseId === cid);
+  }
+  /** Conteúdos das categorias do curso */
+  function contentsOfCourse(courseId) {
+    const catIds = new Set(categoriesOfCourse(courseId).map(c => c.id));
+    return allContents.filter(c => catIds.has(c.categoryId));
+  }
+  /** Nome formatado: "Idioma — Nome" */
+  function formatCourseLabel(c) {
+    return c ? `${c.language} — ${c.name}` : '';
+  }
 
   function getLatestProgress(studentId, contentId) {
     return allProgress
@@ -58,17 +77,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   /* ====== Alternância de view ====== */
-  document.querySelectorAll('#viewStudentsBtn, #viewCurriculumBtn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#viewStudentsBtn, #viewCurriculumBtn').forEach(b => {
+  const VIEW_BTNS  = ['viewStudentsBtn', 'viewCoursesBtn', 'viewCurriculumBtn'];
+  const VIEW_PANES = { students: 'studentsView', courses: 'coursesView', curriculum: 'curriculumView' };
+
+  VIEW_BTNS.forEach(id => {
+    const btn = document.getElementById(id);
+    btn?.addEventListener('click', () => {
+      VIEW_BTNS.forEach(bid => {
+        const b = document.getElementById(bid);
+        if (!b) return;
         b.classList.remove('app-tab--active');
         b.setAttribute('aria-selected', 'false');
       });
       btn.classList.add('app-tab--active');
       btn.setAttribute('aria-selected', 'true');
-      const isStudents = btn.dataset.view === 'students';
-      document.getElementById('studentsView').style.display    = isStudents ? '' : 'none';
-      document.getElementById('curriculumView').style.display  = isStudents ? 'none' : '';
+
+      const view = btn.dataset.view;
+      Object.entries(VIEW_PANES).forEach(([v, paneId]) => {
+        const pane = document.getElementById(paneId);
+        if (pane) pane.style.display = v === view ? '' : 'none';
+      });
     });
   });
 
@@ -471,23 +499,193 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.HT.progressHelpers = { statusLabel, statusIcon, badgeClass, getLatestProgress: () => getLatestProgress, renderProgressBody };
 
   /* ========================================================================
+     VIEW: CURSOS  (gerenciamento — só admin)
+     ======================================================================== */
+
+  function renderCourses() {
+    const list = document.getElementById('coursesList');
+    if (!list) return;
+
+    if (!allCourses.length) {
+      list.innerHTML = `<div class="empty-state" style="min-height:200px;background-color:var(--color-gray-400);border:1.5px dashed var(--gray-200);border-radius:var(--radius-lg); margin-top: 16px;">
+        <i class="fa-solid fa-graduation-cap empty-state-icon"></i>
+        <p class="empty-state-title">Nenhum curso cadastrado</p>
+        <p class="empty-state-desc">Clique em "Novo Curso" para começar.</p>
+      </div>`;
+      return;
+    }
+
+    /* Agrupa por idioma */
+    const byLang = {};
+    allCourses.forEach(c => {
+      const lang = c.language || '(sem idioma)';
+      if (!byLang[lang]) byLang[lang] = [];
+      byLang[lang].push(c);
+    });
+
+    list.innerHTML = Object.entries(byLang).map(([lang, courses]) => `
+      <div class="curriculum-category" data-lang="${escapeAttr(lang)}">
+        <div class="curriculum-cat-header">
+          <strong class="curriculum-cat-name"><i class="fa-solid fa-language" style="margin-right:6px;opacity:.7"></i>${escapeHTML(lang)}</strong>
+          <span class="curriculum-count">${courses.length} curso${courses.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="curriculum-items">
+          ${courses.map(c => {
+            const studentCount = allStudents.filter(s => s.courseId === c.id).length;
+            const catCount     = categoriesOfCourse(c.id).length;
+            return `
+              <div class="curriculum-item" data-course-id="${c.id}">
+                <div class="curriculum-item-text">
+                  <span class="curriculum-item-title">${escapeHTML(c.name)}</span>
+                  <span class="curriculum-item-desc">
+                    ${studentCount} aluno${studentCount !== 1 ? 's' : ''} ·
+                    ${catCount} categoria${catCount !== 1 ? 's' : ''} no currículo
+                    ${c.description ? ` · ${escapeHTML(c.description)}` : ''}
+                  </span>
+                </div>
+                <div class="curriculum-item-actions">
+                  <button class="action-btn action-btn--edit" data-action="edit-course" data-id="${c.id}" type="button" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+                  <button class="action-btn action-btn--delete" data-action="delete-course" data-id="${c.id}" type="button" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', handleCourseAction);
+    });
+  }
+
+  /* helpers de escape (caso utils.escapeHTML não exista) */
+  function escapeHTML(s)  { return HT.utils?.escapeHTML ? HT.utils.escapeHTML(s) : String(s ?? ''); }
+  function escapeAttr(s)  { return escapeHTML(s).replace(/"/g, '&quot;'); }
+
+  async function handleCourseAction(e) {
+    const btn    = e.currentTarget;
+    const action = btn.dataset.action;
+    const id     = btn.dataset.id;
+
+    if (action === 'edit-course')    openCourseModal(findCourse(id));
+    if (action === 'delete-course')  confirmDeleteCourse(id);
+  }
+
+  /* --- CRUD Curso --- */
+  function openCourseModal(course = null) {
+    document.getElementById('courseModalTitle').textContent = course ? 'Editar Curso' : 'Novo Curso';
+    document.getElementById('courseId').value           = course?.id || '';
+    document.getElementById('courseName').value         = course?.name || '';
+    document.getElementById('courseLanguage').value     = course?.language || '';
+    document.getElementById('courseDescription').value  = course?.description || '';
+    document.getElementById('courseNameError').textContent = '';
+    document.getElementById('courseLanguageError').textContent = '';
+    modals.open('courseModalOverlay');
+  }
+
+  document.getElementById('addCourseBtn')?.addEventListener('click', () => openCourseModal());
+  document.getElementById('courseModalCancel')?.addEventListener('click', () => modals.close('courseModalOverlay'));
+  document.getElementById('courseModalClose')?.addEventListener('click',  () => modals.close('courseModalOverlay'));
+
+  document.getElementById('courseForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name     = document.getElementById('courseName').value.trim();
+    const language = document.getElementById('courseLanguage').value.trim();
+    const description = document.getElementById('courseDescription').value.trim();
+    const nameErr = document.getElementById('courseNameError');
+    const langErr = document.getElementById('courseLanguageError');
+    nameErr.textContent = langErr.textContent = '';
+
+    let valid = true;
+    if (!name)     { nameErr.textContent = 'Informe o nome do curso.'; valid = false; }
+    if (!language) { langErr.textContent = 'Informe o idioma.';        valid = false; }
+    if (!valid) return;
+
+    const btn = document.getElementById('courseModalSave');
+    if (btn) btn.classList.add('is-loading');
+    try {
+      const id = document.getElementById('courseId').value || undefined;
+      await storage.saveCourse({ id, name, language, description });
+      allCourses = await storage.getCourses();
+      modals.close('courseModalOverlay');
+      renderCourses();
+      populateCurriculumCourseSelect();
+      utils.showToast(id ? 'Curso atualizado!' : 'Curso criado!', 'success');
+    } catch (err) {
+      console.error(err);
+      utils.showToast('Erro ao salvar curso.', 'error');
+    } finally {
+      if (btn) btn.classList.remove('is-loading');
+    }
+  });
+
+  function confirmDeleteCourse(id) {
+    const course = findCourse(id);
+    const studentCount = allStudents.filter(s => s.courseId === id).length;
+    const catCount     = categoriesOfCourse(id).length;
+    const desc = [];
+    if (studentCount > 0) desc.push(`${studentCount} aluno(s) ficarão sem curso atribuído`);
+    if (catCount > 0)     desc.push(`${catCount} categoria(s) do currículo serão excluídas (junto com seus conteúdos e registros de progresso)`);
+    document.getElementById('progDeleteDesc').textContent =
+      `Excluir o curso "${formatCourseLabel(course)}"?${desc.length ? ' Atenção: ' + desc.join(' e ') + '.' : ''} Esta ação não pode ser desfeita.`;
+    pendingDelete = { type: 'course', id };
+    modals.open('progDeleteOverlay');
+  }
+
+
+  /* ========================================================================
      VIEW: CURRÍCULO
      ======================================================================== */
+
+  function populateCurriculumCourseSelect() {
+    const sel = document.getElementById('curriculumCourseSelect');
+    if (!sel) return;
+    const previousValue = sel.value || currentCourseId;
+    sel.innerHTML = '<option value="">— Selecione um curso —</option>'
+      + allCourses.map(c =>
+          `<option value="${c.id}"${c.id === previousValue ? ' selected' : ''}>${escapeHTML(formatCourseLabel(c))}</option>`
+        ).join('');
+    /* Se o curso atual foi excluído, limpa */
+    if (currentCourseId && !findCourse(currentCourseId)) currentCourseId = null;
+    /* Auto-selecionar único curso disponível (UX) */
+    if (!currentCourseId && allCourses.length === 1) {
+      currentCourseId = allCourses[0].id;
+      sel.value = currentCourseId;
+    }
+    document.getElementById('addCategoryBtn').disabled = !currentCourseId;
+  }
+
+  document.getElementById('curriculumCourseSelect')?.addEventListener('change', (e) => {
+    currentCourseId = e.target.value || null;
+    document.getElementById('addCategoryBtn').disabled = !currentCourseId;
+    renderCurriculum();
+  });
 
   function renderCurriculum() {
     const list = document.getElementById('curriculumList');
     if (!list) return;
 
-    if (!allCategories.length) {
+    if (!currentCourseId) {
       list.innerHTML = `<div class="empty-state" style="min-height:200px;background-color:var(--color-gray-400);border:1.5px dashed var(--gray-200);border-radius:var(--radius-lg); margin-top: 16px;">
-        <i class="fa-solid fa-book-open empty-state-icon"></i>
-        <p class="empty-state-title">Nenhuma categoria criada</p>
-        <p class="empty-state-desc">Clique em "Nova Categoria" para adicionar seu currículo.</p>
+        <i class="fa-solid fa-arrow-up empty-state-icon"></i>
+        <p class="empty-state-title">Selecione um curso acima</p>
+        <p class="empty-state-desc">O currículo é por curso — escolha em qual deles você quer trabalhar.</p>
       </div>`;
       return;
     }
 
-    list.innerHTML = allCategories.map((cat, ci) => {
+    const courseCats = categoriesOfCourse(currentCourseId);
+
+    if (!courseCats.length) {
+      list.innerHTML = `<div class="empty-state" style="min-height:200px;background-color:var(--color-gray-400);border:1.5px dashed var(--gray-200);border-radius:var(--radius-lg); margin-top: 16px;">
+        <i class="fa-solid fa-book-open empty-state-icon"></i>
+        <p class="empty-state-title">Nenhuma categoria criada neste curso</p>
+        <p class="empty-state-desc">Clique em "Nova Categoria" para adicionar.</p>
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = courseCats.map((cat, ci) => {
       const items = allContents.filter(c => c.categoryId === cat.id);
       return `
         <div class="curriculum-category" data-cat-id="${cat.id}">
@@ -496,7 +694,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               <button class="curriculum-reorder-btn" data-action="cat-up" data-id="${cat.id}" ${ci === 0 ? 'disabled' : ''} title="Mover para cima" type="button">
                 <i class="fa-solid fa-chevron-up"></i>
               </button>
-              <button class="curriculum-reorder-btn" data-action="cat-down" data-id="${cat.id}" ${ci === allCategories.length-1 ? 'disabled' : ''} title="Mover para baixo" type="button">
+              <button class="curriculum-reorder-btn" data-action="cat-down" data-id="${cat.id}" ${ci === courseCats.length-1 ? 'disabled' : ''} title="Mover para baixo" type="button">
                 <i class="fa-solid fa-chevron-down"></i>
               </button>
             </div>
@@ -560,10 +758,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function moveCat(id, dir) {
-    const idx = allCategories.findIndex(c => c.id === id);
-    if (idx + dir < 0 || idx + dir >= allCategories.length) return;
-    [allCategories[idx], allCategories[idx + dir]] = [allCategories[idx + dir], allCategories[idx]];
-    await Promise.all(allCategories.map((c, i) => storage.saveProgressCategory({ ...c, position: i })));
+    /* Reordena APENAS dentro do curso atual */
+    const courseCats = categoriesOfCourse(currentCourseId);
+    const idx = courseCats.findIndex(c => c.id === id);
+    if (idx < 0 || idx + dir < 0 || idx + dir >= courseCats.length) return;
+    [courseCats[idx], courseCats[idx + dir]] = [courseCats[idx + dir], courseCats[idx]];
+    await Promise.all(courseCats.map((c, i) => storage.saveProgressCategory({ ...c, position: i })));
     allCategories = await storage.getProgressCategories();
     renderCurriculum();
   }
@@ -597,16 +797,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     const errEl = document.getElementById('categoryNameError');
     errEl.textContent = '';
     if (!name) { errEl.textContent = 'Informe o nome.'; return; }
+    if (!currentCourseId) {
+      utils.showToast('Selecione um curso primeiro.', 'error');
+      return;
+    }
 
     const btn = document.getElementById('categoryModalSave');
     if (btn) btn.classList.add('is-loading');
     try {
-      const id       = document.getElementById('categoryId').value || undefined;
-      const position = id ? findCategory(id)?.position ?? allCategories.length : allCategories.length;
-      await storage.saveProgressCategory({ id, name, position });
+      const id = document.getElementById('categoryId').value || undefined;
+      /* Position = última do curso (não global) */
+      const courseCats = categoriesOfCourse(currentCourseId);
+      const position = id
+        ? findCategory(id)?.position ?? courseCats.length
+        : courseCats.length;
+      await storage.saveProgressCategory({ id, courseId: currentCourseId, name, position });
       allCategories = await storage.getProgressCategories();
       modals.close('categoryModalOverlay');
       renderCurriculum();
+      renderCourses();  /* atualiza contador no painel de cursos */
       utils.showToast(id ? 'Categoria atualizada!' : 'Categoria criada!', 'success');
     } catch (err) { console.error(err); utils.showToast('Erro ao salvar categoria.', 'error'); }
     finally { if (btn) btn.classList.remove('is-loading'); }
@@ -677,99 +886,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else if (pendingDelete.type === 'content') {
         await storage.deleteProgressContent(pendingDelete.id);
         allContents = await storage.getProgressContents();
+      } else if (pendingDelete.type === 'course') {
+        await storage.deleteCourse(pendingDelete.id);
+        allCourses     = await storage.getCourses();
+        allCategories  = await storage.getProgressCategories();
+        allContents    = await storage.getProgressContents();
+        allStudents    = await storage.getStudents();
+        if (currentCourseId === pendingDelete.id) currentCourseId = null;
       }
       allProgress = await storage.getAllStudentProgress();
       modals.close('progDeleteOverlay');
+      renderCourses();
+      populateCurriculumCourseSelect();
       renderCurriculum();
       renderStudents();
       utils.showToast('Excluído com sucesso.', 'warning');
-    } catch { utils.showToast('Erro ao excluir.', 'error'); }
+    } catch (err) { console.error(err); utils.showToast('Erro ao excluir.', 'error'); }
   });
-
-  /* ========================================================================
-     SEED CEFR
-     ======================================================================== */
-
-  document.getElementById('seedCefrBtn')?.addEventListener('click', async () => {
-    if (allCategories.length > 0 &&
-        !confirm('Isso adicionará os conteúdos CEFR ao currículo atual. Continuar?')) return;
-
-    const btn = document.getElementById('seedCefrBtn');
-    if (btn) btn.classList.add('is-loading');
-    try {
-      await seedCefr();
-      allCategories = await storage.getProgressCategories();
-      allContents   = await storage.getProgressContents();
-      renderCurriculum();
-      renderStudents();
-      utils.showToast('Conteúdo CEFR importado com sucesso!', 'success');
-    } catch (err) {
-      utils.showToast('Erro ao importar CEFR.', 'error');
-      console.error(err);
-    } finally {
-      if (btn) btn.classList.remove('is-loading');
-    }
-  });
-
-  async function seedCefr() {
-    const CEFR = [
-      { name: 'A1 — Beginner', items: [
-        'Alfabeto e Fonética','Cumprimentos e Despedidas','Apresentações Pessoais',
-        'Números (1–100)','Cores e Formas','Pronomes Pessoais','Artigos (a, an, the)',
-        'Verbo To Be (presente)','Vocabulário: Família','Vocabulário: Objetos do Dia a Dia',
-        'Adjetivos Simples','Simple Present','There is / There are',
-        'Preposições de Lugar','Dias da Semana e Meses','Horas e Períodos do Dia',
-      ]},
-      { name: 'A2 — Elementary', items: [
-        'Past Simple (verbos regulares)','Past Simple (verbos irregulares)',
-        'Present Continuous','Going to (planos futuros)','Comparativos e Superlativos',
-        'Verbos Modais: Can / Could','Preposições de Tempo (in, on, at)',
-        'Vocabulário: Comida e Bebida','Vocabulário: Viagem e Transporte',
-        'Vocabulário: Corpo e Saúde','Vocabulário: Compras e Dinheiro',
-        'Have got / Has got','Much / Many / A lot of',
-      ]},
-      { name: 'B1 — Intermediate', items: [
-        'Present Perfect (básico)','Present Perfect vs. Past Simple','Past Continuous',
-        'Will / Going to (predições e planos)','First Conditional',
-        'Voz Passiva (presente e passado)','Reported Speech (básico)',
-        'Verbos Modais: Should / Must / Have to','Relative Clauses (básico)',
-        'Vocabulário: Meio Ambiente','Vocabulário: Tecnologia',
-        'Phrasal Verbs Comuns','Linking Words / Conectores',
-      ]},
-      { name: 'B2 — Upper Intermediate', items: [
-        'Past Perfect','Second Conditional','Third Conditional',
-        'Voz Passiva (avançada)','Modal Perfect (should/could/would + have)',
-        'Reported Speech (avançado)','Relative Clauses (avançado)',
-        'Causative (have/get something done)','Inversão Estilística',
-        'Vocabulário: Negócios e Economia','Vocabulário: Política e Sociedade',
-        'Vocabulário: Ciência e Tecnologia','Academic Writing: Estrutura e Coesão',
-      ]},
-      { name: 'C1 — Advanced', items: [
-        'Mixed Conditionals','Subjuntivo e Formas Formais','Discourse Markers Avançados',
-        'Nominalização','Cleft Sentences (It is… / What…)','Registro Formal vs. Informal',
-        'Idioms e Expressões Fixas','Academic Writing: Argumentação Crítica',
-        'Vocabulário Acadêmico (AWL)','Produção Oral: Debates e Negociação',
-      ]},
-      { name: 'C2 — Proficient', items: [
-        'Estruturas Gramaticais Complexas','Nuances de Sentido e Tom',
-        'Literatura e Textos Autênticos','Variantes do Inglês (UK, US, AU)',
-        'Retórica e Persuasão','Expressões Coloquiais e Gírias Avançadas',
-        'Tradução e Interpretação','Escrita Criativa',
-      ]},
-    ];
-
-    const basePos = allCategories.length;
-    for (let ci = 0; ci < CEFR.length; ci++) {
-      const cat = CEFR[ci];
-      const savedCat = await storage.saveProgressCategory({ name: cat.name, position: basePos + ci });
-      for (let ii = 0; ii < cat.items.length; ii++) {
-        await storage.saveProgressContent({ categoryId: savedCat.id, title: cat.items[ii], description: '', position: ii });
-      }
-    }
-  }
 
   /* ====== Init ====== */
   await load();
   renderStudents();
+  renderCourses();
+  populateCurriculumCourseSelect();
   renderCurriculum();
 });

@@ -59,14 +59,18 @@
 
     <main class="page-content" id="mainContent">
 
-      <!-- Tabs: Alunos / Currículo -->
+      <!-- Tabs: Alunos / Curso / Currículo -->
       <div class="app-tabs" role="tablist" aria-label="Visualização">
         <button class="app-tab app-tab--active" data-view="students" id="viewStudentsBtn"
                 role="tab" aria-selected="true" aria-controls="studentsView">
           <i class="fa-solid fa-users"></i><span>Alunos</span>
         </button>
+        <button class="app-tab" data-view="courses" id="viewCoursesBtn"
+                role="tab" aria-selected="false" aria-controls="coursesView" data-admin-only>
+          <i class="fa-solid fa-graduation-cap"></i><span>Curso</span>
+        </button>
         <button class="app-tab" data-view="curriculum" id="viewCurriculumBtn"
-                role="tab" aria-selected="false" aria-controls="curriculumView">
+                role="tab" aria-selected="false" aria-controls="curriculumView" data-admin-only>
           <i class="fa-solid fa-book-open"></i><span>Currículo</span>
         </button>
       </div>
@@ -94,15 +98,36 @@
         </section>
       </div>
 
+      <!-- ===== VIEW: Cursos ===== -->
+      <div id="coursesView" style="display:none">
+        <section class="toolbar" aria-label="Gerenciar cursos">
+          <h3 class="section-title" style="margin:0">
+            <i class="fa-solid fa-graduation-cap section-title-icon"></i>
+            Cursos da escola
+          </h3>
+          <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn--primary btn--sm" id="addCourseBtn">
+              <i class="fa-solid fa-plus"></i>
+              Novo Curso
+            </button>
+          </div>
+        </section>
+        <div id="coursesList">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
       <!-- ===== VIEW: Currículo ===== -->
       <div id="curriculumView" style="display:none">
         <section class="toolbar" aria-label="Gerenciar currículo">
-          <h3 class="section-title" style="margin:0">
-            <i class="fa-solid fa-layer-group section-title-icon"></i>
-            Conteúdos do Programa
-          </h3>
-          <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn--primary btn--sm" id="addCategoryBtn">
+          <div class="form-group" style="flex:1;min-width:240px;margin-bottom:0">
+            <label for="curriculumCourseSelect" class="form-label" style="font-size:.8125rem">Curso ativo</label>
+            <select id="curriculumCourseSelect" class="form-select" aria-label="Selecionar curso ativo">
+              <option value="">— Selecione um curso —</option>
+            </select>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;align-self:flex-end">
+            <button class="btn btn--primary btn--sm" id="addCategoryBtn" disabled>
               <i class="fa-solid fa-plus"></i>
               Nova Categoria
             </button>
@@ -131,6 +156,47 @@
       </div>
       <div class="modal-body" id="studentProgressBody">
         <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Curso ===== -->
+  <div class="modal-overlay" id="courseModalOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" role="dialog" aria-modal="true" aria-labelledby="courseModalTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="courseModalTitle">Novo Curso</h3>
+        <button class="modal-close" id="courseModalClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form class="modal-body" id="courseForm" novalidate>
+        <input type="hidden" id="courseId" />
+        <div class="form-group">
+          <label for="courseName" class="form-label">Nome <span class="required">*</span></label>
+          <input type="text" id="courseName" class="form-input" placeholder="Ex: Adulto Regular, Teens, Conversação..." />
+          <span class="form-error" id="courseNameError"></span>
+        </div>
+        <div class="form-group">
+          <label for="courseLanguage" class="form-label">Idioma <span class="required">*</span></label>
+          <input type="text" id="courseLanguage" class="form-input" placeholder="Ex: Inglês, Espanhol, Francês..." list="commonLanguages" />
+          <datalist id="commonLanguages">
+            <option value="Inglês"></option>
+            <option value="Espanhol"></option>
+            <option value="Francês"></option>
+            <option value="Alemão"></option>
+            <option value="Italiano"></option>
+            <option value="Português"></option>
+          </datalist>
+          <span class="form-error" id="courseLanguageError"></span>
+        </div>
+        <div class="form-group">
+          <label for="courseDescription" class="form-label">Descrição <span class="text-muted">(opcional)</span></label>
+          <textarea id="courseDescription" class="form-textarea" rows="2" placeholder="Detalhes sobre o curso..."></textarea>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--ghost" id="courseModalCancel">Cancelar</button>
+        <button type="submit" form="courseForm" class="btn btn--primary" id="courseModalSave">
+          <i class="fa-solid fa-floppy-disk"></i> <span>Salvar</span>
+        </button>
       </div>
     </div>
   </div>

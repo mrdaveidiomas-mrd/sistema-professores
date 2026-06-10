@@ -50,6 +50,7 @@ HT.storage = (() => {
       age:           r.age,
       email:         r.email       || '',
       phone:         r.phone       || '',
+      courseId:      r.course_id   || null,
       classId:       r.class_id    || null,
       level:         r.level       || '',
       schedules:     r.schedules   || [],
@@ -68,6 +69,7 @@ HT.storage = (() => {
       age:            d.age           || null,
       email:          d.email         || null,
       phone:          d.phone         || null,
+      course_id:      d.courseId      || null,
       class_id:       d.classId       || null,
       level:          d.level         || null,
       schedules:      d.schedules     || [],
@@ -76,6 +78,25 @@ HT.storage = (() => {
       contract_start: d.contractStart || null,
       contract_end:   d.contractEnd   || null,
       notes:          d.notes         || '',
+    };
+  }
+
+  function _toCourse(r) {
+    return {
+      id:          r.id,
+      name:        r.name,
+      language:    r.language,
+      description: r.description || '',
+      active:      r.active !== false,
+      createdAt:   r.created_at,
+    };
+  }
+  function _fromCourse(d) {
+    return {
+      name:        d.name,
+      language:    d.language,
+      description: d.description || null,
+      active:      d.active !== false,
     };
   }
 
@@ -167,6 +188,53 @@ HT.storage = (() => {
       notes:      d.notes     || '',
     };
   }
+
+  /* ====================================================================
+     CURSOS  (RLS: admin tudo, professor read-only)
+     ==================================================================== */
+
+  async function getCourses() {
+    const { data, error } = await db.from('courses')
+      .select('*').order('language').order('name');
+    if (error) throw error;
+    return (data || []).map(_toCourse);
+  }
+
+  async function getCourse(id) {
+    const { data, error } = await db.from('courses')
+      .select('*').eq('id', id).single();
+    if (error) return null;
+    return _toCourse(data);
+  }
+
+  async function saveCourse(d) {
+    const row = _fromCourse(d);
+    if (d.id) {
+      const { data: u, error } = await db.from('courses')
+        .update(row).eq('id', d.id).select().single();
+      if (error) throw error;
+      return _toCourse(u);
+    }
+    const { data: ins, error } = await db.from('courses')
+      .insert(row).select().single();
+    if (error) throw error;
+    return _toCourse(ins);
+  }
+
+  async function deleteCourse(id) {
+    const { error } = await db.from('courses').delete().eq('id', id);
+    if (error) throw error;
+  }
+
+  /** Conta alunos por curso — útil pra UI ("Não pode excluir, tem X alunos"). */
+  async function getCourseStudentCount(courseId) {
+    const { count, error } = await db.from('students')
+      .select('id', { count: 'exact', head: true })
+      .eq('course_id', courseId);
+    if (error) throw error;
+    return count || 0;
+  }
+
 
   /* ====================================================================
      ALUNOS  (RLS: admin tudo, prof apenas alunos vinculados)
@@ -688,15 +756,28 @@ HT.storage = (() => {
      ==================================================================== */
 
   function _toProgressCategory(r) {
-    return { id: r.id, name: r.name, position: r.position ?? 0, createdAt: r.created_at };
+    return {
+      id: r.id,
+      courseId: r.course_id || null,
+      name: r.name,
+      position: r.position ?? 0,
+      createdAt: r.created_at,
+    };
   }
-  async function getProgressCategories() {
-    const { data, error } = await db.from('progress_categories').select('*').order('position');
+  /** opts: { courseId } — quando passado, filtra categorias do curso. */
+  async function getProgressCategories(opts = {}) {
+    let q = db.from('progress_categories').select('*').order('position');
+    if (opts.courseId) q = q.eq('course_id', opts.courseId);
+    const { data, error } = await q;
     if (error) throw error;
     return data.map(_toProgressCategory);
   }
   async function saveProgressCategory(d) {
-    const row = { name: d.name, position: d.position ?? 0 };
+    const row = {
+      course_id: d.courseId || null,
+      name:      d.name,
+      position:  d.position ?? 0,
+    };
     if (d.id) {
       const { data: u, error } = await db.from('progress_categories')
         .update(row).eq('id', d.id).select().single();
@@ -1074,6 +1155,7 @@ HT.storage = (() => {
   }
 
   return {
+    getCourses, getCourse, saveCourse, deleteCourse, getCourseStudentCount,
     getStudents, getStudent, saveStudent, deleteStudent,
     getStudentsPage,
     getClasses,  getClass,  saveClass,  deleteClass,
