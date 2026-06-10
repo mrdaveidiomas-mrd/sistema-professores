@@ -42,6 +42,7 @@ drop table if exists attendance            cascade;
 drop table if exists student_teachers      cascade;
 drop table if exists students              cascade;
 drop table if exists classes               cascade;
+drop table if exists courses               cascade;
 drop table if exists teacher_availability  cascade;
 drop table if exists error_logs            cascade;
 drop table if exists materials             cascade;
@@ -122,8 +123,23 @@ create trigger on_auth_user_created
 
 
 -- =========================================================================
--- SEÇÃO 3 — Tabelas core: classes, students, student_teachers
+-- SEÇÃO 3 — Tabelas core: courses, classes, students, student_teachers
 -- =========================================================================
+
+-- ----- COURSES (trilhas educacionais — ex: "Inglês — Adulto Regular") ----
+create table courses (
+  id          uuid        primary key default gen_random_uuid(),
+  name        text        not null,                 -- ex: "Adulto Regular"
+  language    text        not null,                 -- ex: "Inglês" (texto livre)
+  description text,
+  active      boolean     not null default true,
+  created_at  timestamptz default now()
+);
+alter table courses enable row level security;
+create policy "courses admin all"    on courses for all
+  using (is_admin()) with check (is_admin());
+create policy "courses teacher read" on courses for select
+  using (auth.uid() is not null);
 
 -- ----- CLASSES -----------------------------------------------------------
 create table classes (
@@ -148,6 +164,7 @@ create table students (
   age            int,
   email          text,
   phone          text,
+  course_id      uuid references courses(id) on delete set null,
   class_id       uuid references classes(id) on delete set null,
   level          text,
   schedules      jsonb default '[]'::jsonb,
@@ -241,6 +258,7 @@ create policy "pay admin only" on payments for all
 -- =========================================================================
 create table progress_categories (
   id         uuid primary key default gen_random_uuid(),
+  course_id  uuid references courses(id) on delete cascade,
   name       text not null,
   position   int default 0,
   created_at timestamptz default now()
@@ -447,9 +465,11 @@ create index idx_attendance_teacher_date on attendance(teacher_id, date);
 create index idx_st_teacher_id on student_teachers(teacher_id);
 create index idx_st_student_id on student_teachers(student_id);
 
--- STUDENTS / CLASSES
-create index idx_students_class_id on students(class_id);
+-- STUDENTS / CLASSES / COURSES
+create index idx_students_class_id  on students(class_id);
+create index idx_students_course_id on students(course_id);
 create index idx_classes_teacher_id on classes(teacher_id);
+create index idx_pc_course_id       on progress_categories(course_id);
 
 -- PAYMENTS
 create index idx_payments_student_id on payments(student_id);
