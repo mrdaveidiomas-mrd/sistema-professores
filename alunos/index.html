@@ -189,11 +189,12 @@
 
           <div class="form-row form-row--2">
             <div class="form-group">
-              <label for="studentClass" class="form-label">Turma</label>
-              <select id="studentClass" name="classId" class="form-select">
-                <option value="">Aula individual</option>
+              <label for="studentCourse" class="form-label">Curso <span class="required">*</span></label>
+              <select id="studentCourse" name="courseId" class="form-select" required>
+                <option value="">Selecione um curso</option>
                 <!-- Populated by JS -->
               </select>
+              <span class="form-error" id="courseError"></span>
             </div>
             <div class="form-group">
               <label for="studentLevel" class="form-label">Nível de fluência <span class="required">*</span></label>
@@ -207,6 +208,19 @@
                 <option value="proficient">Proficient (C2)</option>
               </select>
               <span class="form-error" id="levelError"></span>
+            </div>
+          </div>
+
+          <div class="form-row form-row--2">
+            <div class="form-group">
+              <label for="studentClass" class="form-label">Turma</label>
+              <select id="studentClass" name="classId" class="form-select">
+                <option value="">Aula individual</option>
+                <!-- Populated by JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <!-- placeholder pra manter alinhamento do grid 2 col -->
             </div>
           </div>
 
@@ -338,6 +352,12 @@
                 <i class="fa-solid fa-cake-candles"></i> Idade
               </span>
               <span class="info-value" id="detailAge">—</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">
+                <i class="fa-solid fa-graduation-cap"></i> Curso
+              </span>
+              <span class="info-value" id="detailCourse">—</span>
             </div>
             <div class="info-item">
               <span class="info-label">

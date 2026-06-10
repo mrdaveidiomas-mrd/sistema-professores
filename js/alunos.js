@@ -26,11 +26,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const filterLevel = document.getElementById('filterLevel');
   const filterClass = document.getElementById('filterClass');
 
+  let allCourses     = [];
+
+  function findCourse(id) { return allCourses.find(c => c.id === id) || null; }
+  function formatCourseLabel(c) { return c ? `${c.language} — ${c.name}` : ''; }
+
   /* ====== Carregar e Renderizar ====== */
   async function load() {
-    [allStudents, allClasses] = await Promise.all([
+    [allStudents, allClasses, allCourses] = await Promise.all([
       storage.getStudents(),
       storage.getClasses(),
+      storage.getCourses(),
     ]);
     populateClassFilter();
     render();
@@ -218,9 +224,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       utils.setInputValue('studentPayDay',        student.payDay);
       utils.setInputValue('studentContractStart', student.contractStart);
       utils.setInputValue('studentContractEnd',   student.contractEnd);
+      populateCourseSelect(student.courseId);
       populateClassSelect(student.classId);
       initStudentSchedules(getStudentSchedules(student));
     } else {
+      populateCourseSelect(null);
       populateClassSelect(null);
       initStudentSchedules([]);
     }
@@ -235,6 +243,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       + allClasses.map(c => `<option value="${c.id}"${c.id===selectedId?' selected':''}>${c.name}</option>`).join('');
   }
 
+  function populateCourseSelect(selectedId) {
+    const sel = document.getElementById('studentCourse');
+    if (!sel) return;
+    if (!allCourses.length) {
+      sel.innerHTML = '<option value="">— Nenhum curso cadastrado (vá em Progresso → Curso) —</option>';
+      sel.disabled = true;
+      return;
+    }
+    sel.disabled = false;
+    sel.innerHTML = '<option value="">Selecione um curso</option>'
+      + allCourses.map(c =>
+          `<option value="${c.id}"${c.id === selectedId ? ' selected' : ''}>${formatCourseLabel(c)}</option>`
+        ).join('');
+  }
+
   document.getElementById('addStudentBtn')?.addEventListener('click', () => openForm());
   document.getElementById('studentModalCancel')?.addEventListener('click', () => modals.close('studentModalOverlay'));
 
@@ -242,16 +265,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('studentForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const nameErr  = document.getElementById('nameError');
-    const levelErr = document.getElementById('levelError');
+    const nameErr   = document.getElementById('nameError');
+    const levelErr  = document.getElementById('levelError');
+    const courseErr = document.getElementById('courseError');
     nameErr.textContent = levelErr.textContent = '';
+    if (courseErr) courseErr.textContent = '';
 
-    const name  = utils.getInputValue('studentName');
-    const level = utils.getInputValue('studentLevel');
+    const name     = utils.getInputValue('studentName');
+    const level    = utils.getInputValue('studentLevel');
+    const courseId = utils.getInputValue('studentCourse');
     let valid = true;
 
-    if (!name)  { nameErr.textContent  = 'Informe o nome.';    valid = false; }
-    if (!level) { levelErr.textContent = 'Selecione o nível.'; valid = false; }
+    if (!name)     { nameErr.textContent   = 'Informe o nome.';      valid = false; }
+    if (!courseId && courseErr) {
+      courseErr.textContent = 'Selecione um curso.'; valid = false;
+    }
+    if (!level)    { levelErr.textContent  = 'Selecione o nível.';   valid = false; }
     if (!valid) return;
 
     const id        = document.getElementById('studentId').value;
@@ -267,6 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         age:           utils.getInputValue('studentAge')           || null,
         email:         utils.getInputValue('studentEmail')         || '',
         phone:         utils.getInputValue('studentPhone')         || '',
+        courseId:      courseId || null,
         classId:       utils.getInputValue('studentClass')         || null,
         level,
         schedules,
@@ -299,10 +329,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('detailAvatar').innerHTML =
       `<span style="font-size:1.5rem;font-weight:700;color:var(--color-primary)">${utils.getInitials(s.name)}</span>`;
 
-    const cls = s.classId ? findClass(s.classId) : null;
+    const cls    = s.classId  ? findClass(s.classId)   : null;
+    const course = s.courseId ? findCourse(s.courseId) : null;
     utils.setTextContent('detailEmail',         s.email  || '—');
     utils.setTextContent('detailPhone',         utils.formatPhone(s.phone));
     utils.setTextContent('detailAge',           s.age    ? `${s.age} anos` : '—');
+    utils.setTextContent('detailCourse',        course ? formatCourseLabel(course) : '—');
     utils.setTextContent('detailClass',         cls?.name || 'Individual');
     utils.setTextContent('detailLevel',         utils.formatLevel(s.level));
     utils.setTextContent('detailFee',           s.monthlyFee ? utils.formatCurrency(s.monthlyFee)+'/mês' : '—');

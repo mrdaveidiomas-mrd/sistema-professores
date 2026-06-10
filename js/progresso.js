@@ -104,15 +104,27 @@ document.addEventListener('DOMContentLoaded', async () => {
      VIEW: ALUNOS
      ======================================================================== */
 
-  const searchInput = document.getElementById('progStudentSearch');
-  const filterLevel = document.getElementById('progFilterLevel');
+  const searchInput  = document.getElementById('progStudentSearch');
+  const filterLevel  = document.getElementById('progFilterLevel');
+  const filterCourse = document.getElementById('progFilterCourse');
+
+  function populateCourseFilter() {
+    if (!filterCourse) return;
+    const prev = filterCourse.value;
+    filterCourse.innerHTML = '<option value="">Todos os cursos</option>'
+      + allCourses.map(c =>
+          `<option value="${c.id}"${c.id === prev ? ' selected' : ''}>${escapeHTML(formatCourseLabel(c))}</option>`
+        ).join('');
+  }
 
   function getFilteredStudents() {
-    const q     = (searchInput?.value || '').toLowerCase();
-    const level = filterLevel?.value || '';
+    const q        = (searchInput?.value || '').toLowerCase();
+    const level    = filterLevel?.value  || '';
+    const courseId = filterCourse?.value || '';
     return allStudents.filter(s => {
-      if (q     && !s.name.toLowerCase().includes(q)) return false;
-      if (level && s.level !== level) return false;
+      if (q        && !s.name.toLowerCase().includes(q)) return false;
+      if (level    && s.level !== level)                 return false;
+      if (courseId && s.courseId !== courseId)           return false;
       return true;
     });
   }
@@ -143,11 +155,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   function buildStudentCard(s) {
     const recent       = getRecentDone(s.id);
     const levelShort   = utils.formatLevelShort(s.level);
-    const cls          = s.classId ? findClass(s.classId) : null;
+    const cls          = s.classId  ? findClass(s.classId)   : null;
+    const course       = s.courseId ? findCourse(s.courseId) : null;
     const studentProgs = allProgress.filter(p => p.studentId === s.id);
     const doneIds      = new Set(studentProgs.filter(p => p.status === 'realizado').map(p => p.contentId));
-    const totalContents = allContents.length;
-    const pct = totalContents ? Math.round((doneIds.size / totalContents) * 100) : 0;
+    /* Currículo filtrado pelo curso do aluno (não global) */
+    const courseContents = course ? contentsOfCourse(course.id) : [];
+    const totalContents  = courseContents.length;
+    const courseDoneIds  = new Set([...doneIds].filter(id => courseContents.some(c => c.id === id)));
+    const pct = totalContents ? Math.round((courseDoneIds.size / totalContents) * 100) : 0;
 
     const recentHtml = recent.length
       ? recent.map(p => `
@@ -165,6 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="prog-card-name">${s.name}</div>
             <div class="prog-card-meta">
               ${levelShort ? `<span class="level-badge">${levelShort}</span>` : ''}
+              ${course ? `<span class="prog-card-class"><i class="fa-solid fa-graduation-cap" style="font-size:.65rem"></i> ${escapeHTML(formatCourseLabel(course))}</span>` : '<span class="prog-card-class" style="opacity:.6"><i class="fa-solid fa-circle-exclamation" style="font-size:.65rem"></i> Sem curso</span>'}
               ${cls ? `<span class="prog-card-class"><i class="fa-solid fa-users" style="font-size:.65rem"></i> ${cls.name}</span>` : ''}
             </div>
           </div>
@@ -185,6 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   searchInput?.addEventListener('input', utils.debounce(renderStudents, 250));
   filterLevel?.addEventListener('change', renderStudents);
+  filterCourse?.addEventListener('change', renderStudents);
 
   /* ========================================================================
      MODAL: Progresso do aluno
@@ -195,12 +213,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!s) return;
     currentStudentId = studentId;
 
+    const course = s.courseId ? findCourse(s.courseId) : null;
     document.getElementById('progressStudentAvatar').textContent = utils.getInitials(s.name);
     document.getElementById('studentProgressTitle').textContent  = s.name;
-    document.getElementById('studentProgressLevel').textContent  = utils.formatLevel(s.level) || 'Sem nível definido';
+    document.getElementById('studentProgressLevel').textContent  =
+      (course ? formatCourseLabel(course) + ' · ' : '') +
+      (utils.formatLevel(s.level) || 'Sem nível definido');
 
-    /* Auto-selecionar a guia do nível do aluno */
-    const activeCats  = allCategories.filter(cat => allContents.some(c => c.categoryId === cat.id));
+    /* Auto-selecionar a guia do nível do aluno (dentro das categorias do curso) */
+    const courseCats  = s.courseId ? categoriesOfCourse(s.courseId) : [];
+    const activeCats  = courseCats.filter(cat => allContents.some(c => c.categoryId === cat.id));
     const levelShort  = utils.formatLevelShort(s.level || '').toUpperCase(); // "B1"
     const levelIdx    = activeCats.findIndex(cat => cat.name.toUpperCase().startsWith(levelShort));
     _progCatIdx = levelIdx >= 0 ? levelIdx : 0;
@@ -225,25 +247,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     const body = document.getElementById('studentProgressBody');
     if (!body) return;
 
-    /* ---- Sem currículo ---- */
-    if (!allCategories.length) {
+    const student = findStudent(studentId);
+    const studentCourse = student?.courseId ? findCourse(student.courseId) : null;
+
+    /* ---- Aluno sem curso atribuído ---- */
+    if (!student?.courseId) {
       body.innerHTML = `<div class="empty-state">
-        <i class="fa-solid fa-book-open empty-state-icon"></i>
-        <p class="empty-state-title">Nenhum conteúdo cadastrado</p>
-        <p class="empty-state-desc">Vá para "Currículo" e adicione os conteúdos do programa, ou importe o padrão CEFR.</p>
+        <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
+        <p class="empty-state-title">Aluno sem curso atribuído</p>
+        <p class="empty-state-desc">Edite o aluno em "Alunos" e selecione um curso para ver o currículo.</p>
       </div>`;
       return;
     }
 
-    /* ---- Dados gerais ---- */
+    /* ---- Currículo do curso do aluno ---- */
+    const courseCats     = categoriesOfCourse(student.courseId);
+    const courseContents = contentsOfCourse(student.courseId);
+
+    if (!courseCats.length) {
+      body.innerHTML = `<div class="empty-state">
+        <i class="fa-solid fa-book-open empty-state-icon"></i>
+        <p class="empty-state-title">Currículo vazio</p>
+        <p class="empty-state-desc">O curso "${escapeHTML(formatCourseLabel(studentCourse))}" ainda não tem categorias. Adicione em "Currículo" (selecionando este curso).</p>
+      </div>`;
+      return;
+    }
+
+    /* ---- Dados gerais (do curso, não globais) ---- */
+    const courseContentIds = new Set(courseContents.map(c => c.id));
     const doneTotal = new Set(
-      allProgress.filter(p => p.studentId === studentId && p.status === 'realizado').map(p => p.contentId)
+      allProgress
+        .filter(p => p.studentId === studentId && p.status === 'realizado' && courseContentIds.has(p.contentId))
+        .map(p => p.contentId)
     ).size;
-    const totalCont = allContents.length;
+    const totalCont = courseContents.length;
     const pctTotal  = totalCont ? Math.round((doneTotal / totalCont) * 100) : 0;
 
     /* ---- Categorias com itens ---- */
-    const activeCats = allCategories.filter(cat => allContents.some(c => c.categoryId === cat.id));
+    const activeCats = courseCats.filter(cat => allContents.some(c => c.categoryId === cat.id));
     if (_progCatIdx >= activeCats.length) _progCatIdx = 0;
 
     const cat      = activeCats[_progCatIdx];
@@ -906,6 +947,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ====== Init ====== */
   await load();
+  populateCourseFilter();
   renderStudents();
   renderCourses();
   populateCurriculumCourseSelect();
