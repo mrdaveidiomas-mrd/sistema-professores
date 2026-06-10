@@ -595,7 +595,7 @@
 .pmtab--active .pmtab-count { opacity: .85; }
 
 /* ---- Category bar (below tabs) ---- */
-.prog-modal-cat-bar {
+.prog-modal-mod-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -606,13 +606,13 @@
   border-radius: var(--radius-md);
 }
 
-.prog-modal-cat-name {
+.prog-modal-mod-name {
   font-size: .875rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.prog-modal-cat-right {
+.prog-modal-mod-right {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -655,7 +655,7 @@
 }
 
 /* ---- Collapsible category (currículo view only) ---- */
-.prog-category-section {
+.prog-module-section {
   border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -663,10 +663,10 @@
 }
 
 /* Remove native <details> marker */
-.prog-category-section > summary { list-style: none; }
-.prog-category-section > summary::-webkit-details-marker { display: none; }
+.prog-module-section > summary { list-style: none; }
+.prog-module-section > summary::-webkit-details-marker { display: none; }
 
-.prog-category-header {
+.prog-module-header {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -680,10 +680,10 @@
   transition: background 150ms;
 }
 
-.prog-category-header:hover { background: var(--gray-100); }
+.prog-module-header:hover { background: var(--gray-100); }
 
 /* Bottom border only when open */
-.prog-category-section[open] > .prog-category-header {
+.prog-module-section[open] > .prog-module-header {
   border-bottom: 1px solid var(--gray-200);
 }
 
@@ -695,7 +695,7 @@
   flex-shrink: 0;
 }
 
-.prog-category-section[open] > summary .prog-cat-chevron {
+.prog-module-section[open] > summary .prog-cat-chevron {
   transform: rotate(90deg);
 }
 
@@ -709,7 +709,7 @@
   margin-left: auto;
 }
 
-.prog-cat-minibar {
+.prog-mod-minibar {
   width: 60px;
   height: 5px;
   background: var(--gray-200);
@@ -717,14 +717,14 @@
   overflow: hidden;
 }
 
-.prog-cat-minibar-fill {
+.prog-mod-minibar-fill {
   height: 100%;
   background: var(--color-success-light);
   border-radius: var(--radius-full);
   transition: width 300ms ease;
 }
 
-.prog-category-count {
+.prog-module-count {
   font-size: .75rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -734,7 +734,7 @@
   flex-shrink: 0;
 }
 
-.prog-category-items { padding: 4px 0; }
+.prog-module-items { padding: 4px 0; }
 
 .prog-item-row {
   display: flex;
@@ -807,7 +807,7 @@
 
 /* ---------- Curriculum view ---------- */
 
-.curriculum-category {
+.curriculum-module {
   background: var(--color-white);
   border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-md);
@@ -818,7 +818,7 @@
   isolation: isolate;
 }
 
-.curriculum-cat-header {
+.curriculum-mod-header {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -828,7 +828,7 @@
   flex-wrap: wrap;
 }
 
-.curriculum-cat-reorder {
+.curriculum-mod-reorder {
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -853,7 +853,7 @@
 
 .curriculum-reorder-btn:disabled { opacity: .3; cursor: default; }
 
-.curriculum-cat-name {
+.curriculum-mod-name {
   font-size: .9rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -868,7 +868,7 @@
   border-radius: var(--radius-full);
 }
 
-.curriculum-cat-actions {
+.curriculum-mod-actions {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1056,20 +1056,20 @@ td.text-small.textmuted{
 [data-theme="dark"] .pmtab                { background: var(--gray-100); border-color: var(--gray-200); color: var(--text-secondary); }
 [data-theme="dark"] .pmtab:hover          { background: rgba(3,45,111,.25); border-color: var(--color-primary-lighter); }
 [data-theme="dark"] .pmtab--active        { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-white); }
-[data-theme="dark"] .prog-modal-cat-bar   { background: var(--gray-100); border-color: var(--gray-200); }
+[data-theme="dark"] .prog-modal-mod-bar   { background: var(--gray-100); border-color: var(--gray-200); }
 [data-theme="dark"] .prog-modal-items     { border-color: var(--gray-200); }
-[data-theme="dark"] .prog-category-section { border-color: var(--gray-200); }
-[data-theme="dark"] .prog-category-header  { background: var(--gray-100); }
-[data-theme="dark"] .prog-category-header:hover { background: var(--gray-200); }
-[data-theme="dark"] .prog-category-section[open] > .prog-category-header { border-bottom-color: var(--gray-200); }
-[data-theme="dark"] .prog-category-count   { background: var(--gray-300); }
-[data-theme="dark"] .prog-cat-minibar      { background: var(--gray-300); }
+[data-theme="dark"] .prog-module-section { border-color: var(--gray-200); }
+[data-theme="dark"] .prog-module-header  { background: var(--gray-100); }
+[data-theme="dark"] .prog-module-header:hover { background: var(--gray-200); }
+[data-theme="dark"] .prog-module-section[open] > .prog-module-header { border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .prog-module-count   { background: var(--gray-300); }
+[data-theme="dark"] .prog-mod-minibar      { background: var(--gray-300); }
 [data-theme="dark"] .prog-item-row         { border-bottom-color: var(--gray-200); }
 [data-theme="dark"] .prog-card { background: var(--gray-100); border-color: var(--gray-200); }
 [data-theme="dark"] .prog-cards-grid { margin-top: 16px;}
 
-[data-theme="dark"] .curriculum-category    { background: var(--gray-100); border-color: var(--gray-200); }
-[data-theme="dark"] .curriculum-cat-header  { background: var(--gray-100); border-bottom-color: var(--gray-200); }
+[data-theme="dark"] .curriculum-module    { background: var(--gray-100); border-color: var(--gray-200); }
+[data-theme="dark"] .curriculum-mod-header  { background: var(--gray-100); border-bottom-color: var(--gray-200); }
 [data-theme="dark"] .curriculum-count       { background: var(--gray-300); }
 [data-theme="dark"] .curriculum-item        { border-bottom-color: var(--gray-200); }
 [data-theme="dark"] .curriculum-empty       { color: var(--text-muted); }

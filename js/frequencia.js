@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let allAttendance  = [];
   let allStudents    = [];
   let allClasses     = [];
-  let allProgCats    = [];
+  let allProgMods    = [];
   let allProgConts   = [];
 
   /* ====== Helpers de busca no cache ====== */
@@ -35,11 +35,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ====== Carregar todos os dados ====== */
   async function load() {
-    [allAttendance, allStudents, allClasses, allProgCats, allProgConts] = await Promise.all([
+    [allAttendance, allStudents, allClasses, allProgMods, allProgConts] = await Promise.all([
       storage.getAttendance(),
       storage.getStudents(),
       storage.getClasses(),
-      storage.getProgressCategories(),
+      storage.getProgressModules(),
       storage.getProgressContents(),
     ]);
   }
@@ -237,37 +237,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     render();
   });
 
-  /* ====== Curriculum picker (modal de aula) — guias por categoria ====== */
+  /* ====== Curriculum picker (modal de aula) — guias por módulo ====== */
   function buildCurriculumPicker() {
     const picker = document.getElementById('attCurriculumPicker');
     if (!picker) return;
 
-    if (!allProgCats.length || !allProgConts.length) {
+    if (!allProgMods.length || !allProgConts.length) {
       picker.innerHTML = `<div class="att-curriculum-empty">Nenhum conteúdo cadastrado no currículo. Configure em <a href="/progresso/" style="color:var(--color-primary)">Progresso → Currículo</a>.</div>`;
       return;
     }
 
-    /* Filtra só categorias que têm conteúdo */
-    const activeCats = allProgCats.filter(cat =>
-      allProgConts.some(c => c.categoryId === cat.id)
+    /* Filtra só módulos que têm conteúdo */
+    const activeMods = allProgMods.filter(mod =>
+      allProgConts.some(c => c.moduleId === mod.id)
     );
 
-    if (!activeCats.length) {
+    if (!activeMods.length) {
       picker.innerHTML = `<div class="att-curriculum-empty">Nenhum conteúdo no currículo.</div>`;
       return;
     }
 
     /* Guias */
-    const tabsHtml = activeCats.map((cat, i) => {
+    const tabsHtml = activeMods.map((cat, i) => {
       /* Extrai só o código do nível, ex: "A1 — Beginner" → "A1" */
-      const label = cat.name.split('—')[0].trim() || cat.name;
+      const label = mod.name.split('—')[0].trim() || mod.name;
       return `<button type="button" class="att-curr-tab${i === 0 ? ' att-curr-tab--active' : ''}"
                 data-cat-idx="${i}">${label}</button>`;
     }).join('');
 
     /* Painéis (todos ficam no DOM — checkboxes são encontrados mesmo nos ocultos) */
-    const panelsHtml = activeCats.map((cat, i) => {
-      const items = allProgConts.filter(c => c.categoryId === cat.id);
+    const panelsHtml = activeMods.map((cat, i) => {
+      const items = allProgConts.filter(c => c.moduleId === mod.id);
       const itemsHtml = items.map(item => `
         <div class="att-curriculum-item">
           <input type="checkbox" id="pc_${item.id}" value="${item.id}" />

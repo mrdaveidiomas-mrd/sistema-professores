@@ -752,10 +752,12 @@ HT.storage = (() => {
   }
 
   /* ====================================================================
-     PROGRESSO — Categorias / Conteúdos / Registros
+     PROGRESSO — Módulos / Conteúdos / Registros
+     (Nota: tabela DB chama-se `progress_categories` por motivos
+      históricos. No domínio do app, o conceito é "Módulo".)
      ==================================================================== */
 
-  function _toProgressCategory(r) {
+  function _toProgressModule(r) {
     return {
       id: r.id,
       courseId: r.course_id || null,
@@ -764,15 +766,15 @@ HT.storage = (() => {
       createdAt: r.created_at,
     };
   }
-  /** opts: { courseId } — quando passado, filtra categorias do curso. */
-  async function getProgressCategories(opts = {}) {
+  /** opts: { courseId } — quando passado, filtra módulos do curso. */
+  async function getProgressModules(opts = {}) {
     let q = db.from('progress_categories').select('*').order('position');
     if (opts.courseId) q = q.eq('course_id', opts.courseId);
     const { data, error } = await q;
     if (error) throw error;
-    return data.map(_toProgressCategory);
+    return data.map(_toProgressModule);
   }
-  async function saveProgressCategory(d) {
+  async function saveProgressModule(d) {
     const row = {
       course_id: d.courseId || null,
       name:      d.name,
@@ -782,21 +784,21 @@ HT.storage = (() => {
       const { data: u, error } = await db.from('progress_categories')
         .update(row).eq('id', d.id).select().single();
       if (error) throw error;
-      return _toProgressCategory(u);
+      return _toProgressModule(u);
     }
     const { data: ins, error } = await db.from('progress_categories')
       .insert(row).select().single();
     if (error) throw error;
-    return _toProgressCategory(ins);
+    return _toProgressModule(ins);
   }
-  async function deleteProgressCategory(id) {
+  async function deleteProgressModule(id) {
     const { error } = await db.from('progress_categories').delete().eq('id', id);
     if (error) throw error;
   }
 
   function _toProgressContent(r) {
     return {
-      id: r.id, categoryId: r.category_id,
+      id: r.id, moduleId: r.category_id,
       title: r.title, description: r.description || '',
       position: r.position ?? 0, createdAt: r.created_at,
     };
@@ -808,7 +810,7 @@ HT.storage = (() => {
   }
   async function saveProgressContent(d) {
     const row = {
-      category_id: d.categoryId, title: d.title,
+      category_id: d.moduleId, title: d.title,
       description: d.description || null, position: d.position ?? 0,
     };
     if (d.id) {
@@ -1168,7 +1170,7 @@ HT.storage = (() => {
     setStudentTeachers,
     getTeacherStudents, setTeacherStudents,
     getTeacherClasses,  setTeacherClasses,
-    getProgressCategories, saveProgressCategory, deleteProgressCategory,
+    getProgressModules, saveProgressModule, deleteProgressModule,
     getProgressContents,   saveProgressContent,  deleteProgressContent,
     getStudentProgressRecords, getAllStudentProgress,
     saveStudentProgress, bulkSaveStudentProgress, deleteStudentProgress,

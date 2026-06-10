@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let allStudents    = [];
   let allClasses     = [];
   let allCourses     = [];
-  let allCategories  = [];
+  let allModules  = [];
   let allContents    = [];
   let allProgress    = [];
   let currentStudentId = null;
@@ -18,17 +18,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   let pendingDelete  = { type: null, id: null };
 
   /* Estado do modal de progresso (guias + paginação) */
-  let _progCatIdx  = 0;
+  let _progModIdx  = 0;
   let _progPage    = 1;
   const PROG_PAGE  = 10;
 
   /* ====== Carregar tudo ====== */
   async function load() {
-    [allStudents, allClasses, allCourses, allCategories, allContents, allProgress] = await Promise.all([
+    [allStudents, allClasses, allCourses, allModules, allContents, allProgress] = await Promise.all([
       storage.getStudents(),
       storage.getClasses(),
       storage.getCourses(),
-      storage.getProgressCategories(),
+      storage.getProgressModules(),
       storage.getProgressContents(),
       storage.getAllStudentProgress(),
     ]);
@@ -38,18 +38,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const findStudent  = id => allStudents.find(s => s.id === id) || null;
   const findClass    = id => allClasses.find(c => c.id === id) || null;
   const findCourse   = id => allCourses.find(c => c.id === id) || null;
-  const findCategory = id => allCategories.find(c => c.id === id) || null;
+  const findModule = id => allModules.find(c => c.id === id) || null;
   const findContent  = id => allContents.find(c => c.id === id) || null;
 
-  /** Categorias do curso (ou de currentCourseId se omitido) */
-  function categoriesOfCourse(courseId) {
+  /** Módulos do curso (ou de currentCourseId se omitido) */
+  function modulesOfCourse(courseId) {
     const cid = courseId ?? currentCourseId;
-    return allCategories.filter(c => c.courseId === cid);
+    return allModules.filter(c => c.courseId === cid);
   }
-  /** Conteúdos das categorias do curso */
+  /** Conteúdos dos módulos do curso */
   function contentsOfCourse(courseId) {
-    const catIds = new Set(categoriesOfCourse(courseId).map(c => c.id));
-    return allContents.filter(c => catIds.has(c.categoryId));
+    const moduleIds = new Set(modulesOfCourse(courseId).map(c => c.id));
+    return allContents.filter(c => moduleIds.has(c.moduleId));
   }
   /** Nome formatado: "Idioma — Nome" */
   function formatCourseLabel(c) {
@@ -220,26 +220,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       (course ? formatCourseLabel(course) + ' · ' : '') +
       (utils.formatLevel(s.level) || 'Sem nível definido');
 
-    /* Auto-selecionar a guia do nível do aluno (dentro das categorias do curso) */
-    const courseCats  = s.courseId ? categoriesOfCourse(s.courseId) : [];
-    const activeCats  = courseCats.filter(cat => allContents.some(c => c.categoryId === cat.id));
+    /* Auto-selecionar a guia do nível do aluno (dentro dos módulos do curso) */
+    const courseModules  = s.courseId ? modulesOfCourse(s.courseId) : [];
+    const activeModules  = courseModules.filter(mod => allContents.some(c => c.moduleId === mod.id));
     const levelShort  = utils.formatLevelShort(s.level || '').toUpperCase(); // "B1"
-    const levelIdx    = activeCats.findIndex(cat => cat.name.toUpperCase().startsWith(levelShort));
-    _progCatIdx = levelIdx >= 0 ? levelIdx : 0;
+    const levelIdx    = activeModules.findIndex(mod => mod.name.toUpperCase().startsWith(levelShort));
+    _progModIdx = levelIdx >= 0 ? levelIdx : 0;
     _progPage   = 1;
 
     renderProgressBody(studentId);
     modals.open('studentProgressOverlay');
   }
 
-  /* Extrai código curto da categoria ("A1 — Beginner" → "A1") */
-  function _catCode(cat) {
-    const m = cat.name.match(/^([A-C][12])/i);
-    return m ? m[1].toUpperCase() : cat.name.substring(0, 6);
+  /* Extrai código curto da módulo ("A1 — Beginner" → "A1") */
+  function _modCode(mod) {
+    const m = mod.name.match(/^([A-C][12])/i);
+    return m ? m[1].toUpperCase() : mod.name.substring(0, 6);
   }
   /* Extrai nome longo ("A1 — Beginner" → "Beginner") */
-  function _catSub(cat) {
-    const parts = cat.name.split(/\s*—\s*/);
+  function _modSub(mod) {
+    const parts = mod.name.split(/\s*—\s*/);
     return parts.length > 1 ? parts[1].trim() : '';
   }
 
@@ -261,14 +261,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /* ---- Currículo do curso do aluno ---- */
-    const courseCats     = categoriesOfCourse(student.courseId);
+    const courseModules     = modulesOfCourse(student.courseId);
     const courseContents = contentsOfCourse(student.courseId);
 
-    if (!courseCats.length) {
+    if (!courseModules.length) {
       body.innerHTML = `<div class="empty-state">
         <i class="fa-solid fa-book-open empty-state-icon"></i>
         <p class="empty-state-title">Currículo vazio</p>
-        <p class="empty-state-desc">O curso "${escapeHTML(formatCourseLabel(studentCourse))}" ainda não tem categorias. Adicione em "Currículo" (selecionando este curso).</p>
+        <p class="empty-state-desc">O curso "${escapeHTML(formatCourseLabel(studentCourse))}" ainda não tem módulos. Adicione em "Currículo" (selecionando este curso).</p>
       </div>`;
       return;
     }
@@ -283,12 +283,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const totalCont = courseContents.length;
     const pctTotal  = totalCont ? Math.round((doneTotal / totalCont) * 100) : 0;
 
-    /* ---- Categorias com itens ---- */
-    const activeCats = courseCats.filter(cat => allContents.some(c => c.categoryId === cat.id));
-    if (_progCatIdx >= activeCats.length) _progCatIdx = 0;
+    /* ---- Módulos com itens ---- */
+    const activeModules = courseModules.filter(mod => allContents.some(c => c.moduleId === mod.id));
+    if (_progModIdx >= activeModules.length) _progModIdx = 0;
 
-    const cat      = activeCats[_progCatIdx];
-    const items    = allContents.filter(c => c.categoryId === cat.id);
+    const mod      = activeModules[_progModIdx];
+    const items    = allContents.filter(c => c.moduleId === mod.id);
     const total    = items.length;
     const pages    = Math.max(1, Math.ceil(total / PROG_PAGE));
     if (_progPage > pages) _progPage = pages;
@@ -297,17 +297,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const doneInCat = items.filter(i => getLatestProgress(studentId, i.id)?.status === 'realizado').length;
     const pctCat    = total ? Math.round((doneInCat / total) * 100) : 0;
 
-    /* ---- Guias de categoria ---- */
-    const tabsHtml = activeCats.map((c, idx) => {
-      const catItems = allContents.filter(x => x.categoryId === c.id);
-      const catDone  = catItems.filter(i => getLatestProgress(studentId, i.id)?.status === 'realizado').length;
-      const active   = idx === _progCatIdx;
+    /* ---- Guias de módulo ---- */
+    const tabsHtml = activeModules.map((c, idx) => {
+      const modItems = allContents.filter(x => x.moduleId === c.id);
+      const modDone  = modItems.filter(i => getLatestProgress(studentId, i.id)?.status === 'realizado').length;
+      const active   = idx === _progModIdx;
       return `
         <button class="pmtab${active ? ' pmtab--active' : ''}" data-idx="${idx}" type="button"
                 title="${c.name}">
-          <span class="pmtab-code">${_catCode(c)}</span>
-          <span class="pmtab-sub">${_catSub(c) || c.name}</span>
-          <span class="pmtab-count">${catDone}/${catItems.length}</span>
+          <span class="pmtab-code">${_modCode(c)}</span>
+          <span class="pmtab-sub">${_modSub(c) || c.name}</span>
+          <span class="pmtab-count">${modDone}/${modItems.length}</span>
         </button>`;
     }).join('');
 
@@ -376,18 +376,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         </button>
       </div>
 
-      <div class="prog-modal-cat-bar">
-        <span class="prog-modal-cat-name">${cat.name}</span>
-        <div class="prog-modal-cat-right">
-          <div class="prog-cat-minibar">
-            <div class="prog-cat-minibar-fill" style="width:${pctCat}%"></div>
+      <div class="prog-modal-mod-bar">
+        <span class="prog-modal-mod-name">${mod.name}</span>
+        <div class="prog-modal-mod-right">
+          <div class="prog-mod-minibar">
+            <div class="prog-mod-minibar-fill" style="width:${pctCat}%"></div>
           </div>
-          <span class="prog-category-count">${doneInCat}/${total} · ${pctCat}%</span>
+          <span class="prog-module-count">${doneInCat}/${total} · ${pctCat}%</span>
         </div>
       </div>
 
       <div class="prog-modal-items">
-        ${itemsHtml || '<div class="empty-state empty-state--sm"><p>Nenhum conteúdo nesta categoria.</p></div>'}
+        ${itemsHtml || '<div class="empty-state empty-state--sm"><p>Nenhum conteúdo neste módulo.</p></div>'}
       </div>
 
       ${paginationHtml}`;
@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     /* ---- Eventos ---- */
     body.querySelectorAll('.pmtab').forEach(btn => {
       btn.addEventListener('click', () => {
-        _progCatIdx = +btn.dataset.idx;
+        _progModIdx = +btn.dataset.idx;
         _progPage   = 1;
         renderProgressBody(studentId);
       });
@@ -565,22 +565,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     list.innerHTML = Object.entries(byLang).map(([lang, courses]) => `
-      <div class="curriculum-category" data-lang="${escapeAttr(lang)}">
-        <div class="curriculum-cat-header">
-          <strong class="curriculum-cat-name"><i class="fa-solid fa-language" style="margin-right:6px;opacity:.7"></i>${escapeHTML(lang)}</strong>
+      <div class="curriculum-module" data-lang="${escapeAttr(lang)}">
+        <div class="curriculum-mod-header">
+          <strong class="curriculum-mod-name"><i class="fa-solid fa-language" style="margin-right:6px;opacity:.7"></i>${escapeHTML(lang)}</strong>
           <span class="curriculum-count">${courses.length} curso${courses.length !== 1 ? 's' : ''}</span>
         </div>
         <div class="curriculum-items">
           ${courses.map(c => {
             const studentCount = allStudents.filter(s => s.courseId === c.id).length;
-            const catCount     = categoriesOfCourse(c.id).length;
+            const moduleCount     = modulesOfCourse(c.id).length;
             return `
               <div class="curriculum-item" data-course-id="${c.id}">
                 <div class="curriculum-item-text">
                   <span class="curriculum-item-title">${escapeHTML(c.name)}</span>
                   <span class="curriculum-item-desc">
                     ${studentCount} aluno${studentCount !== 1 ? 's' : ''} ·
-                    ${catCount} categoria${catCount !== 1 ? 's' : ''} no currículo
+                    ${moduleCount} módulo${moduleCount !== 1 ? 's' : ''} no currículo
                     ${c.description ? ` · ${escapeHTML(c.description)}` : ''}
                   </span>
                 </div>
@@ -663,10 +663,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   function confirmDeleteCourse(id) {
     const course = findCourse(id);
     const studentCount = allStudents.filter(s => s.courseId === id).length;
-    const catCount     = categoriesOfCourse(id).length;
+    const moduleCount     = modulesOfCourse(id).length;
     const desc = [];
     if (studentCount > 0) desc.push(`${studentCount} aluno(s) ficarão sem curso atribuído`);
-    if (catCount > 0)     desc.push(`${catCount} categoria(s) do currículo serão excluídas (junto com seus conteúdos e registros de progresso)`);
+    if (moduleCount > 0)     desc.push(`${moduleCount} módulo(s) do currículo serão excluídas (junto com seus conteúdos e registros de progresso)`);
     document.getElementById('progDeleteDesc').textContent =
       `Excluir o curso "${formatCourseLabel(course)}"?${desc.length ? ' Atenção: ' + desc.join(' e ') + '.' : ''} Esta ação não pode ser desfeita.`;
     pendingDelete = { type: 'course', id };
@@ -693,12 +693,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       currentCourseId = allCourses[0].id;
       sel.value = currentCourseId;
     }
-    document.getElementById('addCategoryBtn').disabled = !currentCourseId;
+    document.getElementById('addModuleBtn').disabled = !currentCourseId;
   }
 
   document.getElementById('curriculumCourseSelect')?.addEventListener('change', (e) => {
     currentCourseId = e.target.value || null;
-    document.getElementById('addCategoryBtn').disabled = !currentCourseId;
+    document.getElementById('addModuleBtn').disabled = !currentCourseId;
     renderCurriculum();
   });
 
@@ -710,45 +710,45 @@ document.addEventListener('DOMContentLoaded', async () => {
       list.innerHTML = `<div class="empty-state" style="min-height:200px;background-color:var(--color-gray-400);border:1.5px dashed var(--gray-200);border-radius:var(--radius-lg); margin-top: 16px;">
         <i class="fa-solid fa-arrow-up empty-state-icon"></i>
         <p class="empty-state-title">Selecione um curso acima</p>
-        <p class="empty-state-desc">O currículo é por curso — escolha em qual deles você quer trabalhar.</p>
+        <p class="empty-state-desc">O currículo é por curso: escolha em qual deles você quer trabalhar.</p>
       </div>`;
       return;
     }
 
-    const courseCats = categoriesOfCourse(currentCourseId);
+    const courseModules = modulesOfCourse(currentCourseId);
 
-    if (!courseCats.length) {
+    if (!courseModules.length) {
       list.innerHTML = `<div class="empty-state" style="min-height:200px;background-color:var(--color-gray-400);border:1.5px dashed var(--gray-200);border-radius:var(--radius-lg); margin-top: 16px;">
         <i class="fa-solid fa-book-open empty-state-icon"></i>
-        <p class="empty-state-title">Nenhuma categoria criada neste curso</p>
-        <p class="empty-state-desc">Clique em "Nova Categoria" para adicionar.</p>
+        <p class="empty-state-title">Nenhum módulo criado neste curso</p>
+        <p class="empty-state-desc">Clique em "Novo Módulo" para adicionar.</p>
       </div>`;
       return;
     }
 
-    list.innerHTML = courseCats.map((cat, ci) => {
-      const items = allContents.filter(c => c.categoryId === cat.id);
+    list.innerHTML = courseModules.map((mod, ci) => {
+      const items = allContents.filter(c => c.moduleId === mod.id);
       return `
-        <div class="curriculum-category" data-cat-id="${cat.id}">
-          <div class="curriculum-cat-header">
-            <div class="curriculum-cat-reorder">
-              <button class="curriculum-reorder-btn" data-action="cat-up" data-id="${cat.id}" ${ci === 0 ? 'disabled' : ''} title="Mover para cima" type="button">
+        <div class="curriculum-module" data-module-id="${mod.id}">
+          <div class="curriculum-mod-header">
+            <div class="curriculum-mod-reorder">
+              <button class="curriculum-reorder-btn" data-action="mod-up" data-id="${mod.id}" ${ci === 0 ? 'disabled' : ''} title="Mover para cima" type="button">
                 <i class="fa-solid fa-chevron-up"></i>
               </button>
-              <button class="curriculum-reorder-btn" data-action="cat-down" data-id="${cat.id}" ${ci === courseCats.length-1 ? 'disabled' : ''} title="Mover para baixo" type="button">
+              <button class="curriculum-reorder-btn" data-action="mod-down" data-id="${mod.id}" ${ci === courseModules.length-1 ? 'disabled' : ''} title="Mover para baixo" type="button">
                 <i class="fa-solid fa-chevron-down"></i>
               </button>
             </div>
-            <strong class="curriculum-cat-name">${cat.name}</strong>
+            <strong class="curriculum-mod-name">${mod.name}</strong>
             <span class="curriculum-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
-            <div class="curriculum-cat-actions">
-              <button class="action-btn action-btn--edit" data-action="edit-cat" data-id="${cat.id}" title="Editar categoria" type="button">
+            <div class="curriculum-mod-actions">
+              <button class="action-btn action-btn--edit" data-action="edit-module" data-id="${mod.id}" title="Editar módulo" type="button">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
-              <button class="action-btn action-btn--delete" data-action="delete-cat" data-id="${cat.id}" title="Excluir categoria" type="button">
+              <button class="action-btn action-btn--delete" data-action="delete-module" data-id="${mod.id}" title="Excluir módulo" type="button">
                 <i class="fa-solid fa-trash"></i>
               </button>
-              <button class="btn btn--ghost btn--sm" data-action="add-item" data-cat-id="${cat.id}" type="button">
+              <button class="btn btn--ghost btn--sm" data-action="add-item" data-module-id="${mod.id}" type="button">
                 <i class="fa-solid fa-plus"></i> Item
               </button>
             </div>
@@ -757,15 +757,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             ${items.length ? items.map((item, ii) => `
               <div class="curriculum-item" data-item-id="${item.id}">
                 <div class="curriculum-item-reorder">
-                  <button class="curriculum-reorder-btn" data-action="item-up" data-id="${item.id}" data-cat-id="${cat.id}" ${ii === 0 ? 'disabled' : ''} type="button"><i class="fa-solid fa-chevron-up"></i></button>
-                  <button class="curriculum-reorder-btn" data-action="item-down" data-id="${item.id}" data-cat-id="${cat.id}" ${ii === items.length-1 ? 'disabled' : ''} type="button"><i class="fa-solid fa-chevron-down"></i></button>
+                  <button class="curriculum-reorder-btn" data-action="item-up" data-id="${item.id}" data-module-id="${mod.id}" ${ii === 0 ? 'disabled' : ''} type="button"><i class="fa-solid fa-chevron-up"></i></button>
+                  <button class="curriculum-reorder-btn" data-action="item-down" data-id="${item.id}" data-module-id="${mod.id}" ${ii === items.length-1 ? 'disabled' : ''} type="button"><i class="fa-solid fa-chevron-down"></i></button>
                 </div>
                 <div class="curriculum-item-text">
                   <span class="curriculum-item-title">${item.title}</span>
                   ${item.description ? `<span class="curriculum-item-desc">${item.description}</span>` : ''}
                 </div>
                 <div class="curriculum-item-actions">
-                  <button class="action-btn action-btn--edit" data-action="edit-item" data-id="${item.id}" data-cat-id="${cat.id}" type="button"><i class="fa-solid fa-pen-to-square"></i></button>
+                  <button class="action-btn action-btn--edit" data-action="edit-item" data-id="${item.id}" data-module-id="${mod.id}" type="button"><i class="fa-solid fa-pen-to-square"></i></button>
                   <button class="action-btn action-btn--delete" data-action="delete-item" data-id="${item.id}" type="button"><i class="fa-solid fa-trash"></i></button>
                 </div>
               </div>`).join('')
@@ -783,34 +783,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btn    = e.currentTarget;
     const action = btn.dataset.action;
     const id     = btn.dataset.id;
-    const catId  = btn.dataset.catId;
+    const moduleId  = btn.dataset.moduleId;
 
     switch (action) {
-      case 'cat-up':   await moveCat(id, -1); break;
-      case 'cat-down': await moveCat(id, +1); break;
-      case 'item-up':  await moveItem(id, catId, -1); break;
-      case 'item-down':await moveItem(id, catId, +1); break;
-      case 'edit-cat': openCategoryModal(findCategory(id)); break;
-      case 'delete-cat': confirmDeleteCat(id); break;
-      case 'edit-item':  openContentModal(catId, findContent(id)); break;
+      case 'mod-up':   await moveModule(id, -1); break;
+      case 'mod-down': await moveModule(id, +1); break;
+      case 'item-up':  await moveItem(id, moduleId, -1); break;
+      case 'item-down':await moveItem(id, moduleId, +1); break;
+      case 'edit-module': openModuleModal(findModule(id)); break;
+      case 'delete-module': confirmDeleteModule(id); break;
+      case 'edit-item':  openContentModal(moduleId, findContent(id)); break;
       case 'delete-item':confirmDeleteItem(id); break;
-      case 'add-item':   openContentModal(catId); break;
+      case 'add-item':   openContentModal(moduleId); break;
     }
   }
 
-  async function moveCat(id, dir) {
+  async function moveModule(id, dir) {
     /* Reordena APENAS dentro do curso atual */
-    const courseCats = categoriesOfCourse(currentCourseId);
-    const idx = courseCats.findIndex(c => c.id === id);
-    if (idx < 0 || idx + dir < 0 || idx + dir >= courseCats.length) return;
-    [courseCats[idx], courseCats[idx + dir]] = [courseCats[idx + dir], courseCats[idx]];
-    await Promise.all(courseCats.map((c, i) => storage.saveProgressCategory({ ...c, position: i })));
-    allCategories = await storage.getProgressCategories();
+    const courseModules = modulesOfCourse(currentCourseId);
+    const idx = courseModules.findIndex(c => c.id === id);
+    if (idx < 0 || idx + dir < 0 || idx + dir >= courseModules.length) return;
+    [courseModules[idx], courseModules[idx + dir]] = [courseModules[idx + dir], courseModules[idx]];
+    await Promise.all(courseModules.map((c, i) => storage.saveProgressModule({ ...c, position: i })));
+    allModules = await storage.getProgressModules();
     renderCurriculum();
   }
 
-  async function moveItem(id, catId, dir) {
-    const items = allContents.filter(c => c.categoryId === catId);
+  async function moveItem(id, moduleId, dir) {
+    const items = allContents.filter(c => c.moduleId === moduleId);
     const idx   = items.findIndex(c => c.id === id);
     if (idx + dir < 0 || idx + dir >= items.length) return;
     [items[idx], items[idx + dir]] = [items[idx + dir], items[idx]];
@@ -819,23 +819,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCurriculum();
   }
 
-  /* --- CRUD Categoria --- */
-  function openCategoryModal(cat = null) {
-    document.getElementById('categoryModalTitle').textContent = cat ? 'Editar Categoria' : 'Nova Categoria';
-    document.getElementById('categoryId').value              = cat?.id || '';
-    document.getElementById('categoryName').value            = cat?.name || '';
-    document.getElementById('categoryNameError').textContent = '';
-    modals.open('categoryModalOverlay');
+  /* --- CRUD Módulo --- */
+  function openModuleModal(mod = null) {
+    document.getElementById('moduleModalTitle').textContent = mod ? 'Editar Módulo' : 'Novo Módulo';
+    document.getElementById('moduleId').value              = mod?.id || '';
+    document.getElementById('moduleName').value            = mod?.name || '';
+    document.getElementById('moduleNameError').textContent = '';
+    modals.open('moduleModalOverlay');
   }
 
-  document.getElementById('addCategoryBtn')?.addEventListener('click', () => openCategoryModal());
-  document.getElementById('categoryModalCancel')?.addEventListener('click', () => modals.close('categoryModalOverlay'));
-  document.getElementById('categoryModalClose')?.addEventListener('click', () => modals.close('categoryModalOverlay'));
+  document.getElementById('addModuleBtn')?.addEventListener('click', () => openModuleModal());
+  document.getElementById('moduleModalCancel')?.addEventListener('click', () => modals.close('moduleModalOverlay'));
+  document.getElementById('moduleModalClose')?.addEventListener('click', () => modals.close('moduleModalOverlay'));
 
-  document.getElementById('categoryForm')?.addEventListener('submit', async (e) => {
+  document.getElementById('moduleForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name  = document.getElementById('categoryName').value.trim();
-    const errEl = document.getElementById('categoryNameError');
+    const name  = document.getElementById('moduleName').value.trim();
+    const errEl = document.getElementById('moduleNameError');
     errEl.textContent = '';
     if (!name) { errEl.textContent = 'Informe o nome.'; return; }
     if (!currentCourseId) {
@@ -843,39 +843,39 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    const btn = document.getElementById('categoryModalSave');
+    const btn = document.getElementById('moduleModalSave');
     if (btn) btn.classList.add('is-loading');
     try {
-      const id = document.getElementById('categoryId').value || undefined;
+      const id = document.getElementById('moduleId').value || undefined;
       /* Position = última do curso (não global) */
-      const courseCats = categoriesOfCourse(currentCourseId);
+      const courseModules = modulesOfCourse(currentCourseId);
       const position = id
-        ? findCategory(id)?.position ?? courseCats.length
-        : courseCats.length;
-      await storage.saveProgressCategory({ id, courseId: currentCourseId, name, position });
-      allCategories = await storage.getProgressCategories();
-      modals.close('categoryModalOverlay');
+        ? findModule(id)?.position ?? courseModules.length
+        : courseModules.length;
+      await storage.saveProgressModule({ id, courseId: currentCourseId, name, position });
+      allModules = await storage.getProgressModules();
+      modals.close('moduleModalOverlay');
       renderCurriculum();
       renderCourses();  /* atualiza contador no painel de cursos */
-      utils.showToast(id ? 'Categoria atualizada!' : 'Categoria criada!', 'success');
-    } catch (err) { console.error(err); utils.showToast('Erro ao salvar categoria.', 'error'); }
+      utils.showToast(id ? 'Módulo atualizado!' : 'Módulo criado!', 'success');
+    } catch (err) { console.error(err); utils.showToast('Erro ao salvar módulo.', 'error'); }
     finally { if (btn) btn.classList.remove('is-loading'); }
   });
 
-  function confirmDeleteCat(id) {
-    const cat   = findCategory(id);
-    const count = allContents.filter(c => c.categoryId === id).length;
+  function confirmDeleteModule(id) {
+    const mod = findModule(id);
+    const count = allContents.filter(c => c.moduleId === id).length;
     document.getElementById('progDeleteDesc').textContent =
-      `Excluir a categoria "${cat?.name}"? Os ${count} conteúdo(s) dentro dela também serão excluídos. Esta ação não pode ser desfeita.`;
-    pendingDelete = { type: 'category', id };
+      `Excluir o módulo "${mod?.name}"? Os ${count} conteúdo(s) dentro dele também serão excluídos. Esta ação não pode ser desfeita.`;
+    pendingDelete = { type: 'module', id };
     modals.open('progDeleteOverlay');
   }
 
   /* --- CRUD Conteúdo --- */
-  function openContentModal(catId, content = null) {
+  function openContentModal(moduleId, content = null) {
     document.getElementById('contentModalTitle').textContent = content ? 'Editar Conteúdo' : 'Novo Conteúdo';
     document.getElementById('contentId').value               = content?.id || '';
-    document.getElementById('contentCategoryId').value       = catId;
+    document.getElementById('contentModuleId').value       = moduleId;
     document.getElementById('contentTitle').value            = content?.title || '';
     document.getElementById('contentDescription').value      = content?.description || '';
     document.getElementById('contentTitleError').textContent = '';
@@ -889,7 +889,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault();
     const title       = document.getElementById('contentTitle').value.trim();
     const description = document.getElementById('contentDescription').value.trim();
-    const categoryId  = document.getElementById('contentCategoryId').value;
+    const moduleId    = document.getElementById('contentModuleId').value;
     const errEl       = document.getElementById('contentTitleError');
     errEl.textContent = '';
     if (!title) { errEl.textContent = 'Informe o título.'; return; }
@@ -898,9 +898,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btn) btn.classList.add('is-loading');
     try {
       const id       = document.getElementById('contentId').value || undefined;
-      const existing = allContents.filter(c => c.categoryId === categoryId);
+      const existing = allContents.filter(c => c.moduleId === moduleId);
       const position = id ? findContent(id)?.position ?? existing.length : existing.length;
-      await storage.saveProgressContent({ id, categoryId, title, description, position });
+      await storage.saveProgressContent({ id, moduleId, title, description, position });
       allContents = await storage.getProgressContents();
       modals.close('contentModalOverlay');
       renderCurriculum();
@@ -920,9 +920,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('progDeleteCancel')?.addEventListener('click', () => modals.close('progDeleteOverlay'));
   document.getElementById('progDeleteConfirm')?.addEventListener('click', async () => {
     try {
-      if (pendingDelete.type === 'category') {
-        await storage.deleteProgressCategory(pendingDelete.id);
-        allCategories = await storage.getProgressCategories();
+      if (pendingDelete.type === 'module') {
+        await storage.deleteProgressModule(pendingDelete.id);
+        allModules = await storage.getProgressModules();
         allContents   = await storage.getProgressContents();
       } else if (pendingDelete.type === 'content') {
         await storage.deleteProgressContent(pendingDelete.id);
@@ -930,7 +930,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else if (pendingDelete.type === 'course') {
         await storage.deleteCourse(pendingDelete.id);
         allCourses     = await storage.getCourses();
-        allCategories  = await storage.getProgressCategories();
+        allModules  = await storage.getProgressModules();
         allContents    = await storage.getProgressContents();
         allStudents    = await storage.getStudents();
         if (currentCourseId === pendingDelete.id) currentCourseId = null;

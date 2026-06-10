@@ -21,7 +21,7 @@
 --   Seção 3 — Tabelas core: classes, students, student_teachers
 --   Seção 4 — Attendance (frequência)
 --   Seção 5 — Payments (mensalidades)
---   Seção 6 — Progress (categorias, conteúdos, registros)
+--   Seção 6 — Progress (módulos, conteúdos, registros)
 --   Seção 7 — Teacher availability (disponibilidade)
 --   Seção 8 — Error logs (centralização de erros front-end)
 --   Seção 9 — Materials (folders + materials + storage policies)

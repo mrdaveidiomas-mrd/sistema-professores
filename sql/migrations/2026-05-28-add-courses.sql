@@ -2,10 +2,10 @@
 -- MIGRATION: 2026-05-28-add-courses.sql
 -- =========================================================================
 -- Adiciona o conceito de CURSO (ex: "Inglês - Adulto Regular", "Espanhol -
--- Conversação"). Cada aluno pertence a um curso. Cada curso tem suas próprias
--- categorias e conteúdos de currículo.
+-- Conversação"). Cada aluno pertence a um curso. Cada curso tem seus próprios
+-- módulos e conteúdos de currículo.
 --
--- ⚠️ APAGA dados existentes de progresso (categorias, conteúdos, registros).
+-- ⚠️ APAGA dados existentes de progresso (módulos, conteúdos, registros).
 --    Confirmado com o usuário antes de aplicar.
 --
 -- Idempotente após a primeira execução. Pode ser rodada novamente sem efeito.
@@ -52,7 +52,9 @@ create index if not exists idx_students_course_id on students(course_id);
 
 
 -- ----- 3) FK progress_categories.course_id -------------------------------
--- Cada categoria pertence a um curso (currículo é por curso).
+-- Cada módulo (linha em progress_categories) pertence a um curso.
+-- Nota: tabela mantém nome "progress_categories" por compatibilidade —
+-- no domínio do app, o conceito é "Módulo".
 alter table progress_categories
   add column if not exists course_id uuid
   references courses(id) on delete cascade;

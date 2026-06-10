@@ -131,9 +131,9 @@
             </select>
           </div>
           <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;align-self:flex-end">
-            <button class="btn btn--primary btn--sm" id="addCategoryBtn" disabled>
+            <button class="btn btn--primary btn--sm" id="addModuleBtn" disabled style="height:40px">
               <i class="fa-solid fa-plus"></i>
-              Nova Categoria
+              Novo Módulo
             </button>
           </div>
         </section>
@@ -205,24 +205,24 @@
     </div>
   </div>
 
-  <!-- ===== MODAL: Categoria ===== -->
-  <div class="modal-overlay" id="categoryModalOverlay" aria-hidden="true">
-    <div class="modal modal--confirm" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
+  <!-- ===== MODAL: Módulo ===== -->
+  <div class="modal-overlay" id="moduleModalOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" role="dialog" aria-modal="true" aria-labelledby="moduleModalTitle">
       <div class="modal-header">
-        <h3 class="modal-title" id="categoryModalTitle">Nova Categoria</h3>
-        <button class="modal-close" id="categoryModalClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="modal-title" id="moduleModalTitle">Novo Módulo</h3>
+        <button class="modal-close" id="moduleModalClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <form class="modal-body" id="categoryForm" novalidate>
-        <input type="hidden" id="categoryId" />
+      <form class="modal-body" id="moduleForm" novalidate>
+        <input type="hidden" id="moduleId" />
         <div class="form-group">
-          <label for="categoryName" class="form-label">Nome <span class="required">*</span></label>
-          <input type="text" id="categoryName" class="form-input" placeholder="Ex: Nível A1, Módulo 1, Gramática..." />
-          <span class="form-error" id="categoryNameError"></span>
+          <label for="moduleName" class="form-label">Nome <span class="required">*</span></label>
+          <input type="text" id="moduleName" class="form-input" placeholder="Ex: Unidade 1, Nível A1, Gramática..." />
+          <span class="form-error" id="moduleNameError"></span>
         </div>
       </form>
       <div class="modal-footer">
-        <button type="button" class="btn btn--ghost" id="categoryModalCancel">Cancelar</button>
-        <button type="submit" form="categoryForm" class="btn btn--primary" id="categoryModalSave">
+        <button type="button" class="btn btn--ghost" id="moduleModalCancel">Cancelar</button>
+        <button type="submit" form="moduleForm" class="btn btn--primary" id="moduleModalSave">
           <i class="fa-solid fa-floppy-disk"></i> <span>Salvar</span>
         </button>
       </div>
@@ -238,7 +238,7 @@
       </div>
       <form class="modal-body" id="contentForm" novalidate>
         <input type="hidden" id="contentId" />
-        <input type="hidden" id="contentCategoryId" />
+        <input type="hidden" id="contentModuleId" />
         <div class="form-group">
           <label for="contentTitle" class="form-label">Título <span class="required">*</span></label>
           <input type="text" id="contentTitle" class="form-input" placeholder="Ex: Verbo To Be, Present Perfect..." />

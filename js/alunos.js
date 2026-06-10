@@ -422,13 +422,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     body.innerHTML = `<div class="empty-state empty-state--sm"><i class="fa-solid fa-rotate fa-spin"></i><p>Carregando...</p></div>`;
 
     try {
-      const [categories, contents, records] = await Promise.all([
-        storage.getProgressCategories(),
+      const [modules, contents, records] = await Promise.all([
+        storage.getProgressModules(),
         storage.getProgressContents(),
         storage.getStudentProgressRecords(studentId),
       ]);
 
-      if (!categories.length) {
+      if (!modules.length) {
         body.innerHTML = `<div class="empty-state empty-state--sm">
           <i class="fa-solid fa-book-open"></i>
           <p>Nenhum conteúdo cadastrado no currículo.</p>
@@ -454,18 +454,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         <div class="prog-bar-wrap" style="margin: 16px 0 6px 0"><div class="prog-bar-fill" style="width:${pct}%"></div></div>
         <div class="prog-bar-label" style="margin-bottom:14px">${doneIds.size} de ${totalCont} realizados · ${pct}%</div>`;
 
-      categories.forEach(cat => {
-        const items = contents.filter(c => c.categoryId === cat.id);
+      modules.forEach(mod => {
+        const items = contents.filter(c => c.moduleId === mod.id);
         if (!items.length) return;
 
         const doneInCat = items.filter(i => getLatest(i.id)?.status === 'realizado').length;
 
-        html += `<div class="prog-category-section">
-          <div class="prog-category-header">
-            <span>${cat.name}</span>
-            <span class="prog-category-count">${doneInCat}/${items.length}</span>
+        html += `<div class="prog-module-section">
+          <div class="prog-module-header">
+            <span>${mod.name}</span>
+            <span class="prog-module-count">${doneInCat}/${items.length}</span>
           </div>
-          <div class="prog-category-items">`;
+          <div class="prog-module-items">`;
 
         items.forEach(item => {
           const latest = getLatest(item.id);
@@ -586,8 +586,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!s) return;
 
     try {
-      const [categories, contents, records] = await Promise.all([
-        storage.getProgressCategories(),
+      const [modules, contents, records] = await Promise.all([
+        storage.getProgressModules(),
         storage.getProgressContents(),
         storage.getStudentProgressRecords(currentId),
       ]);
@@ -603,8 +603,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const esc = utils.escapeHTML;
 
-      const sectionsHTML = categories.map(cat => {
-        const items = contents.filter(c => c.categoryId === cat.id);
+      const sectionsHTML = modules.map(mod => {
+        const items = contents.filter(c => c.moduleId === mod.id);
         if (!items.length) return '';
         const doneInCat = items.filter(i => getLatest(i.id)?.status === 'realizado').length;
         const rows = items.map(item => {
@@ -623,7 +623,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return `<section style="margin-top:20px;page-break-inside:avoid">
           <h3 style="display:flex;justify-content:space-between;align-items:baseline">
-            <span>${esc(cat.name)}</span>
+            <span>${esc(mod.name)}</span>
             <span style="font-size:.9rem;font-weight:400;color:#666">${doneInCat}/${items.length}</span>
           </h3>
           <table><tbody>${rows}</tbody></table>
