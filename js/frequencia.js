@@ -258,15 +258,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /* Guias */
-    const tabsHtml = activeMods.map((cat, i) => {
+    const tabsHtml = activeMods.map((mod, i) => {
       /* Extrai só o código do nível, ex: "A1 — Beginner" → "A1" */
       const label = mod.name.split('—')[0].trim() || mod.name;
       return `<button type="button" class="att-curr-tab${i === 0 ? ' att-curr-tab--active' : ''}"
-                data-cat-idx="${i}">${label}</button>`;
+                data-mod-idx="${i}">${label}</button>`;
     }).join('');
 
     /* Painéis (todos ficam no DOM — checkboxes são encontrados mesmo nos ocultos) */
-    const panelsHtml = activeMods.map((cat, i) => {
+    const panelsHtml = activeMods.map((mod, i) => {
       const items = allProgConts.filter(c => c.moduleId === mod.id);
       const itemsHtml = items.map(item => `
         <div class="att-curriculum-item">
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <label for="pc_${item.id}">${item.title}</label>
         </div>`).join('');
       return `<div class="att-curr-panel${i === 0 ? ' att-curr-panel--active' : ''}"
-                   data-cat-idx="${i}">${itemsHtml}</div>`;
+                   data-mod-idx="${i}">${itemsHtml}</div>`;
     }).join('');
 
     picker.innerHTML = `
@@ -284,11 +284,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     /* Troca de guia */
     picker.querySelectorAll('.att-curr-tab').forEach(btn => {
       btn.addEventListener('click', () => {
-        const idx = btn.dataset.catIdx;
+        const idx = btn.dataset.modIdx;
         picker.querySelectorAll('.att-curr-tab').forEach(b =>
-          b.classList.toggle('att-curr-tab--active', b.dataset.catIdx === idx));
+          b.classList.toggle('att-curr-tab--active', b.dataset.modIdx === idx));
         picker.querySelectorAll('.att-curr-panel').forEach(p =>
-          p.classList.toggle('att-curr-panel--active', p.dataset.catIdx === idx));
+          p.classList.toggle('att-curr-panel--active', p.dataset.modIdx === idx));
       });
     });
   }
