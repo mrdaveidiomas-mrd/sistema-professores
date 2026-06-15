@@ -817,11 +817,16 @@
   background-clip: padding-box;
   isolation: isolate;
 }
-/* Quando um kebab menu está aberto dentro do módulo, permite que ele
-   escape do clipping (caso contrário fica cortado em módulos colapsados
-   ou no último item do módulo). */
+/* Quando um kebab menu está aberto dentro do módulo:
+   - overflow: visible    → menu escapa do clipping do módulo
+   - position + z-index   → módulo sobe no stacking acima dos vizinhos
+     (necessário porque .curriculum-module tem `isolation: isolate`, que
+      cria um stacking context isolado; sem isso o z-index do menu fica
+      preso dentro do contexto do próprio módulo) */
 .curriculum-module:has(.kebab-menu:not([hidden])) {
   overflow: visible;
+  position: relative;
+  z-index: 100;
 }
 
 .curriculum-mod-header {
