@@ -907,6 +907,8 @@
   flex-direction: column;
   gap: 2px;
 }
+/* Garante que [hidden] vence display:flex (mesma especificidade) */
+.kebab-menu[hidden] { display: none; }
 .kebab-item {
   display: flex;
   align-items: center;
