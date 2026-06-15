@@ -764,7 +764,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <i class="fa-solid fa-plus"></i> Item
               </button>
               <div class="kebab-menu-wrap">
-                <button class="action-btn kebab-trigger" data-action="toggle-mod-menu" data-id="${mod.id}"
+                <button class="action-btn kebab-trigger" data-action="toggle-menu" data-target="modMenu-${mod.id}"
                         aria-haspopup="true" aria-expanded="false" title="Mais ações" type="button">
                   <i class="fa-solid fa-ellipsis-vertical"></i>
                 </button>
@@ -786,21 +786,39 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
           </div>
           <div class="curriculum-items">
-            ${items.length ? items.map((item, ii) => `
+            ${items.length ? items.map((item, ii) => {
+              const itemFirst = ii === 0;
+              const itemLast  = ii === items.length - 1;
+              return `
               <div class="curriculum-item" data-item-id="${item.id}">
-                <div class="curriculum-item-reorder">
-                  <button class="curriculum-reorder-btn" data-action="item-up" data-id="${item.id}" data-module-id="${mod.id}" ${ii === 0 ? 'disabled' : ''} type="button"><i class="fa-solid fa-chevron-up"></i></button>
-                  <button class="curriculum-reorder-btn" data-action="item-down" data-id="${item.id}" data-module-id="${mod.id}" ${ii === items.length-1 ? 'disabled' : ''} type="button"><i class="fa-solid fa-chevron-down"></i></button>
-                </div>
                 <div class="curriculum-item-text">
                   <span class="curriculum-item-title">${item.title}</span>
                   ${item.description ? `<span class="curriculum-item-desc">${item.description}</span>` : ''}
                 </div>
                 <div class="curriculum-item-actions">
-                  <button class="action-btn action-btn--edit" data-action="edit-item" data-id="${item.id}" data-module-id="${mod.id}" type="button"><i class="fa-solid fa-pen-to-square"></i></button>
-                  <button class="action-btn action-btn--delete" data-action="delete-item" data-id="${item.id}" type="button"><i class="fa-solid fa-trash"></i></button>
+                  <div class="kebab-menu-wrap">
+                    <button class="action-btn kebab-trigger" data-action="toggle-menu" data-target="itemMenu-${item.id}"
+                            aria-haspopup="true" aria-expanded="false" title="Mais ações" type="button">
+                      <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div class="kebab-menu" id="itemMenu-${item.id}" role="menu" hidden>
+                      <button class="kebab-item" data-action="item-up" data-id="${item.id}" data-module-id="${mod.id}" ${itemFirst ? 'disabled' : ''} role="menuitem" type="button">
+                        <i class="fa-solid fa-chevron-up"></i> Subir
+                      </button>
+                      <button class="kebab-item" data-action="item-down" data-id="${item.id}" data-module-id="${mod.id}" ${itemLast ? 'disabled' : ''} role="menuitem" type="button">
+                        <i class="fa-solid fa-chevron-down"></i> Descer
+                      </button>
+                      <button class="kebab-item" data-action="edit-item" data-id="${item.id}" data-module-id="${mod.id}" role="menuitem" type="button">
+                        <i class="fa-solid fa-pen-to-square"></i> Editar
+                      </button>
+                      <button class="kebab-item kebab-item--danger" data-action="delete-item" data-id="${item.id}" role="menuitem" type="button">
+                        <i class="fa-solid fa-trash"></i> Excluir
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>`).join('')
+              </div>`;
+            }).join('')
             : `<div class="curriculum-empty"><i class="fa-solid fa-inbox"></i> Nenhum item. Clique em "+ Item" para adicionar.</div>`}
           </div>
         </div>`;
@@ -817,47 +835,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     const id     = btn.dataset.id;
     const moduleId  = btn.dataset.moduleId;
 
-    /* Fecha kebab menu depois de qualquer ação que altera dados */
+    /* Fecha kebab menu depois de qualquer ação que altera dados/abre modal */
     const closeMenuAfter = () => closeAllKebabMenus();
 
     switch (action) {
       case 'toggle-module': toggleModuleCollapse(id); renderCurriculum(); break;
-      case 'toggle-mod-menu': toggleKebabMenu(btn, id); break;
+      case 'toggle-menu':   toggleKebabMenu(btn, btn.dataset.target); break;
       case 'mod-up':   closeMenuAfter(); await moveModule(id, -1); break;
       case 'mod-down': closeMenuAfter(); await moveModule(id, +1); break;
-      case 'item-up':  await moveItem(id, moduleId, -1); break;
-      case 'item-down':await moveItem(id, moduleId, +1); break;
+      case 'item-up':  closeMenuAfter(); await moveItem(id, moduleId, -1); break;
+      case 'item-down':closeMenuAfter(); await moveItem(id, moduleId, +1); break;
       case 'edit-module': closeMenuAfter(); openModuleModal(findModule(id)); break;
       case 'delete-module': closeMenuAfter(); confirmDeleteModule(id); break;
-      case 'edit-item':  openContentModal(moduleId, findContent(id)); break;
-      case 'delete-item':confirmDeleteItem(id); break;
+      case 'edit-item':  closeMenuAfter(); openContentModal(moduleId, findContent(id)); break;
+      case 'delete-item':closeMenuAfter(); confirmDeleteItem(id); break;
       case 'add-item':   openContentModal(moduleId); break;
     }
   }
 
-  /* ---- Kebab menu (módulos) ---- */
+  /* ---- Kebab menu (módulos e itens) ----
+     Padrão robusto: o listener de "clicar fora" só vive enquanto há menu
+     aberto. Evita conflito com handlers de click do próprio currículo e
+     garante que o menu fecha em qualquer clique fora.
+  */
+  function _outsideClick(e) {
+    if (!e.target.closest('.kebab-menu-wrap')) closeAllKebabMenus();
+  }
+
   function closeAllKebabMenus() {
     document.querySelectorAll('.kebab-menu').forEach(menu => { menu.hidden = true; });
     document.querySelectorAll('.kebab-trigger[aria-expanded="true"]')
       .forEach(btn => btn.setAttribute('aria-expanded', 'false'));
+    document.removeEventListener('mousedown', _outsideClick, true);
   }
 
-  function toggleKebabMenu(triggerBtn, moduleId) {
-    const menu = document.getElementById(`modMenu-${moduleId}`);
-    if (!menu) return;
-    const isOpen = !menu.hidden;
+  function openKebabMenu(triggerBtn, menuId) {
     closeAllKebabMenus();
-    if (!isOpen) {
-      menu.hidden = false;
-      triggerBtn.setAttribute('aria-expanded', 'true');
-    }
+    const menu = document.getElementById(menuId);
+    if (!menu) return;
+    menu.hidden = false;
+    triggerBtn.setAttribute('aria-expanded', 'true');
+    /* Registra logo após o ciclo de evento atual, pra não capturar
+       o próprio mousedown que abriu o menu. */
+    setTimeout(() => {
+      document.addEventListener('mousedown', _outsideClick, true);
+    }, 0);
   }
 
-  /* Click fora: fecha menus */
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.kebab-menu-wrap')) closeAllKebabMenus();
-  });
-  /* Escape: fecha menus */
+  function toggleKebabMenu(triggerBtn, menuId) {
+    const menu = document.getElementById(menuId);
+    if (!menu) return;
+    if (menu.hidden) openKebabMenu(triggerBtn, menuId);
+    else             closeAllKebabMenus();
+  }
+
+  /* Escape fecha menus */
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeAllKebabMenus();
   });
