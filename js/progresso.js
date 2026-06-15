@@ -747,6 +747,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     list.innerHTML = courseModules.map((mod, ci) => {
       const items = allContents.filter(c => c.moduleId === mod.id);
       const isCollapsed = collapsedModules.has(mod.id);
+      const isFirst = ci === 0;
+      const isLast  = ci === courseModules.length - 1;
       return `
         <div class="curriculum-module${isCollapsed ? ' curriculum-module--collapsed' : ''}" data-module-id="${mod.id}">
           <div class="curriculum-mod-header">
@@ -755,26 +757,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                     aria-expanded="${!isCollapsed}" type="button">
               <i class="fa-solid fa-chevron-down curriculum-toggle-icon"></i>
             </button>
-            <div class="curriculum-mod-reorder">
-              <button class="curriculum-reorder-btn" data-action="mod-up" data-id="${mod.id}" ${ci === 0 ? 'disabled' : ''} title="Mover para cima" type="button">
-                <i class="fa-solid fa-chevron-up"></i>
-              </button>
-              <button class="curriculum-reorder-btn" data-action="mod-down" data-id="${mod.id}" ${ci === courseModules.length-1 ? 'disabled' : ''} title="Mover para baixo" type="button">
-                <i class="fa-solid fa-chevron-down"></i>
-              </button>
-            </div>
             <strong class="curriculum-mod-name">${mod.name}</strong>
             <span class="curriculum-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
             <div class="curriculum-mod-actions">
-              <button class="action-btn action-btn--edit" data-action="edit-module" data-id="${mod.id}" title="Editar módulo" type="button">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-              <button class="action-btn action-btn--delete" data-action="delete-module" data-id="${mod.id}" title="Excluir módulo" type="button">
-                <i class="fa-solid fa-trash"></i>
-              </button>
               <button class="btn btn--ghost btn--sm" data-action="add-item" data-module-id="${mod.id}" type="button">
                 <i class="fa-solid fa-plus"></i> Item
               </button>
+              <div class="kebab-menu-wrap">
+                <button class="action-btn kebab-trigger" data-action="toggle-mod-menu" data-id="${mod.id}"
+                        aria-haspopup="true" aria-expanded="false" title="Mais ações" type="button">
+                  <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+                <div class="kebab-menu" id="modMenu-${mod.id}" role="menu" hidden>
+                  <button class="kebab-item" data-action="mod-up" data-id="${mod.id}" ${isFirst ? 'disabled' : ''} role="menuitem" type="button">
+                    <i class="fa-solid fa-chevron-up"></i> Subir
+                  </button>
+                  <button class="kebab-item" data-action="mod-down" data-id="${mod.id}" ${isLast ? 'disabled' : ''} role="menuitem" type="button">
+                    <i class="fa-solid fa-chevron-down"></i> Descer
+                  </button>
+                  <button class="kebab-item" data-action="edit-module" data-id="${mod.id}" role="menuitem" type="button">
+                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                  </button>
+                  <button class="kebab-item kebab-item--danger" data-action="delete-module" data-id="${mod.id}" role="menuitem" type="button">
+                    <i class="fa-solid fa-trash"></i> Excluir
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="curriculum-items">
@@ -809,19 +817,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     const id     = btn.dataset.id;
     const moduleId  = btn.dataset.moduleId;
 
+    /* Fecha kebab menu depois de qualquer ação que altera dados */
+    const closeMenuAfter = () => closeAllKebabMenus();
+
     switch (action) {
       case 'toggle-module': toggleModuleCollapse(id); renderCurriculum(); break;
-      case 'mod-up':   await moveModule(id, -1); break;
-      case 'mod-down': await moveModule(id, +1); break;
+      case 'toggle-mod-menu': toggleKebabMenu(btn, id); break;
+      case 'mod-up':   closeMenuAfter(); await moveModule(id, -1); break;
+      case 'mod-down': closeMenuAfter(); await moveModule(id, +1); break;
       case 'item-up':  await moveItem(id, moduleId, -1); break;
       case 'item-down':await moveItem(id, moduleId, +1); break;
-      case 'edit-module': openModuleModal(findModule(id)); break;
-      case 'delete-module': confirmDeleteModule(id); break;
+      case 'edit-module': closeMenuAfter(); openModuleModal(findModule(id)); break;
+      case 'delete-module': closeMenuAfter(); confirmDeleteModule(id); break;
       case 'edit-item':  openContentModal(moduleId, findContent(id)); break;
       case 'delete-item':confirmDeleteItem(id); break;
       case 'add-item':   openContentModal(moduleId); break;
     }
   }
+
+  /* ---- Kebab menu (módulos) ---- */
+  function closeAllKebabMenus() {
+    document.querySelectorAll('.kebab-menu').forEach(menu => { menu.hidden = true; });
+    document.querySelectorAll('.kebab-trigger[aria-expanded="true"]')
+      .forEach(btn => btn.setAttribute('aria-expanded', 'false'));
+  }
+
+  function toggleKebabMenu(triggerBtn, moduleId) {
+    const menu = document.getElementById(`modMenu-${moduleId}`);
+    if (!menu) return;
+    const isOpen = !menu.hidden;
+    closeAllKebabMenus();
+    if (!isOpen) {
+      menu.hidden = false;
+      triggerBtn.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  /* Click fora: fecha menus */
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.kebab-menu-wrap')) closeAllKebabMenus();
+  });
+  /* Escape: fecha menus */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAllKebabMenus();
+  });
 
   async function moveModule(id, dir) {
     /* Reordena APENAS dentro do curso atual */
