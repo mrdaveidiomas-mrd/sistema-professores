@@ -834,6 +834,39 @@
   gap: 1px;
 }
 
+/* Toggle de recolher/expandir módulo */
+.curriculum-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+.curriculum-toggle-btn:hover {
+  background: var(--gray-200);
+  color: var(--text-primary);
+}
+.curriculum-toggle-icon {
+  transition: transform .2s ease;
+  font-size: .8125rem;
+}
+.curriculum-module--collapsed .curriculum-toggle-icon {
+  transform: rotate(-90deg);
+}
+.curriculum-module--collapsed .curriculum-items {
+  display: none;
+}
+.curriculum-module--collapsed .curriculum-mod-header {
+  border-bottom: none;
+}
+
 .curriculum-reorder-btn {
   background: none;
   border: none;

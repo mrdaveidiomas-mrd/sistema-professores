@@ -22,6 +22,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   let _progPage    = 1;
   const PROG_PAGE  = 10;
 
+  /* Estado de colapso dos módulos no Currículo (persistido localmente) */
+  const COLLAPSED_KEY = 'ht_curriculum_collapsed';
+  const collapsedModules = new Set(_loadCollapsed());
+
+  function _loadCollapsed() {
+    try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY) || '[]'); }
+    catch { return []; }
+  }
+  function _saveCollapsed() {
+    try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...collapsedModules])); }
+    catch { /* silencioso */ }
+  }
+  function toggleModuleCollapse(moduleId) {
+    if (collapsedModules.has(moduleId)) collapsedModules.delete(moduleId);
+    else                                collapsedModules.add(moduleId);
+    _saveCollapsed();
+  }
+
   /* ====== Carregar tudo ====== */
   async function load() {
     [allStudents, allClasses, allCourses, allModules, allContents, allProgress] = await Promise.all([
@@ -728,9 +746,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     list.innerHTML = courseModules.map((mod, ci) => {
       const items = allContents.filter(c => c.moduleId === mod.id);
+      const isCollapsed = collapsedModules.has(mod.id);
       return `
-        <div class="curriculum-module" data-module-id="${mod.id}">
+        <div class="curriculum-module${isCollapsed ? ' curriculum-module--collapsed' : ''}" data-module-id="${mod.id}">
           <div class="curriculum-mod-header">
+            <button class="curriculum-toggle-btn" data-action="toggle-module" data-id="${mod.id}"
+                    title="${isCollapsed ? 'Expandir' : 'Recolher'} módulo"
+                    aria-expanded="${!isCollapsed}" type="button">
+              <i class="fa-solid fa-chevron-down curriculum-toggle-icon"></i>
+            </button>
             <div class="curriculum-mod-reorder">
               <button class="curriculum-reorder-btn" data-action="mod-up" data-id="${mod.id}" ${ci === 0 ? 'disabled' : ''} title="Mover para cima" type="button">
                 <i class="fa-solid fa-chevron-up"></i>
@@ -786,6 +810,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const moduleId  = btn.dataset.moduleId;
 
     switch (action) {
+      case 'toggle-module': toggleModuleCollapse(id); renderCurriculum(); break;
       case 'mod-up':   await moveModule(id, -1); break;
       case 'mod-down': await moveModule(id, +1); break;
       case 'item-up':  await moveItem(id, moduleId, -1); break;
