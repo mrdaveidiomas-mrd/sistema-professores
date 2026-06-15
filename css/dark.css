@@ -817,6 +817,12 @@
   background-clip: padding-box;
   isolation: isolate;
 }
+/* Quando um kebab menu está aberto dentro do módulo, permite que ele
+   escape do clipping (caso contrário fica cortado em módulos colapsados
+   ou no último item do módulo). */
+.curriculum-module:has(.kebab-menu:not([hidden])) {
+  overflow: visible;
+}
 
 .curriculum-mod-header {
   display: flex;
