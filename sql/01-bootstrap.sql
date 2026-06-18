@@ -312,6 +312,40 @@ create policy "sp teacher delete" on student_progress for delete using (
           where st.student_id = student_progress.student_id and st.teacher_id = auth.uid())
 );
 
+-- Notas (grades) por aluno e por módulo. Tipo livre, valor 0–10.
+create table student_grades (
+  id          uuid        primary key default gen_random_uuid(),
+  student_id  uuid        not null references students(id) on delete cascade,
+  module_id   uuid        not null references progress_categories(id) on delete cascade,
+  grade_type  text        not null,
+  value       numeric(4,2) not null check (value >= 0 and value <= 10),
+  notes       text,
+  recorded_by uuid        references profiles(id) on delete set null,
+  recorded_at date        not null default current_date,
+  created_at  timestamptz default now()
+);
+create index idx_grades_student_module on student_grades(student_id, module_id);
+create index idx_grades_module on student_grades(module_id);
+alter table student_grades enable row level security;
+create policy "sg admin all" on student_grades for all
+  using (is_admin()) with check (is_admin());
+create policy "sg teacher read"   on student_grades for select using (
+  exists (select 1 from student_teachers st
+          where st.student_id = student_grades.student_id and st.teacher_id = auth.uid())
+);
+create policy "sg teacher insert" on student_grades for insert with check (
+  exists (select 1 from student_teachers st
+          where st.student_id = student_grades.student_id and st.teacher_id = auth.uid())
+);
+create policy "sg teacher update" on student_grades for update using (
+  exists (select 1 from student_teachers st
+          where st.student_id = student_grades.student_id and st.teacher_id = auth.uid())
+);
+create policy "sg teacher delete" on student_grades for delete using (
+  exists (select 1 from student_teachers st
+          where st.student_id = student_grades.student_id and st.teacher_id = auth.uid())
+);
+
 
 -- =========================================================================
 -- SEÇÃO 7 — Teacher availability (disponibilidade)

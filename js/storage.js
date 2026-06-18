@@ -878,6 +878,55 @@ HT.storage = (() => {
   }
 
   /* ====================================================================
+     NOTAS (student_grades) — agrupadas por módulo
+     ==================================================================== */
+  function _toGrade(r) {
+    return {
+      id:         r.id,
+      studentId:  r.student_id,
+      moduleId:   r.module_id,
+      gradeType:  r.grade_type,
+      value:      r.value !== null ? Number(r.value) : null,
+      notes:      r.notes || '',
+      recordedBy: r.recorded_by,
+      recordedAt: r.recorded_at,
+      createdAt:  r.created_at,
+    };
+  }
+  async function getStudentGrades(studentId) {
+    const { data, error } = await db.from('student_grades')
+      .select('*').eq('student_id', studentId)
+      .order('recorded_at', { ascending: false });
+    if (error) throw error;
+    return data.map(_toGrade);
+  }
+  async function saveStudentGrade(d) {
+    const row = {
+      student_id:  d.studentId,
+      module_id:   d.moduleId,
+      grade_type:  d.gradeType,
+      value:       d.value,
+      notes:       d.notes || null,
+      recorded_at: d.recordedAt,
+    };
+    if (d.id) {
+      const { data: u, error } = await db.from('student_grades')
+        .update(row).eq('id', d.id).select().single();
+      if (error) throw error;
+      return _toGrade(u);
+    }
+    row.recorded_by = await _uid();
+    const { data: ins, error } = await db.from('student_grades')
+      .insert(row).select().single();
+    if (error) throw error;
+    return _toGrade(ins);
+  }
+  async function deleteStudentGrade(id) {
+    const { error } = await db.from('student_grades').delete().eq('id', id);
+    if (error) throw error;
+  }
+
+  /* ====================================================================
      DISPONIBILIDADE
      ==================================================================== */
 
@@ -1174,6 +1223,7 @@ HT.storage = (() => {
     getProgressContents,   saveProgressContent,  deleteProgressContent,
     getStudentProgressRecords, getAllStudentProgress,
     saveStudentProgress, bulkSaveStudentProgress, deleteStudentProgress,
+    getStudentGrades, saveStudentGrade, deleteStudentGrade,
     getAvailability, saveAvailability, deleteAvailability,
     getTeacherStudentSchedules,
     getFolders, saveFolder, deleteFolder,

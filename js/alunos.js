@@ -506,6 +506,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   document.getElementById('btnTabProfile')    ?.addEventListener('click', () => activateTab('btnTabProfile',    'tabProfile'));
+  document.getElementById('btnTabGrades')     ?.addEventListener('click', () => {
+    activateTab('btnTabGrades', 'tabGrades');
+    if (currentId) {
+      const body = document.getElementById('tabGradesBody');
+      HT.grades.render(body, { studentId: currentId });
+    }
+  });
   document.getElementById('btnTabAttendance') ?.addEventListener('click', () => {
     activateTab('btnTabAttendance', 'tabAttendance');
     if (currentId) loadAttendanceTab(currentId);

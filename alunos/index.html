@@ -320,6 +320,10 @@
           <i class="fa-solid fa-calendar-check"></i>
           Frequência
         </button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tabGrades" id="btnTabGrades">
+          <i class="fa-solid fa-clipboard-list"></i>
+          Notas
+        </button>
         <button class="tab" role="tab" aria-selected="false" aria-controls="tabFinance" id="btnTabFinance" data-admin-only>
           <i class="fa-solid fa-receipt"></i>
           Finanças
@@ -459,6 +463,16 @@
           </div>
         </div>
 
+        <!-- Tab: Notas -->
+        <div class="tab-panel" id="tabGrades" role="tabpanel" aria-labelledby="btnTabGrades" hidden>
+          <div id="tabGradesBody">
+            <div class="empty-state empty-state--sm">
+              <i class="fa-solid fa-clipboard-list"></i>
+              <p>Carregando...</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Tab: Finanças -->
         <div class="tab-panel" id="tabFinance" role="tabpanel" aria-labelledby="btnTabFinance" hidden data-admin-only>
           <div class="tab-toolbar">
@@ -570,6 +584,7 @@
   <script src="/js/modals.js" defer></script>
   <script src="/js/profile.js" defer></script>
   <script src="/js/ui-roles.js" defer></script>
+  <script src="/js/grades.js" defer></script>
   <script src="/js/alunos.js" defer></script>
 </body>
 </html>

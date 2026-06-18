@@ -408,7 +408,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         ${itemsHtml || '<div class="empty-state empty-state--sm"><p>Nenhum conteúdo neste módulo.</p></div>'}
       </div>
 
-      ${paginationHtml}`;
+      ${paginationHtml}
+
+      <section class="prog-grades-section">
+        <h4 class="prog-grades-title"><i class="fa-solid fa-clipboard-list"></i> Notas</h4>
+        <div id="progGradesBody"></div>
+      </section>`;
 
     /* ---- Eventos ---- */
     body.querySelectorAll('.pmtab').forEach(btn => {
@@ -460,6 +465,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     body.querySelectorAll('.prog-badge[data-content-id]').forEach(btn => {
       btn.addEventListener('click', () => openStatusModal(btn.dataset.studentId, btn.dataset.contentId));
     });
+
+    /* Notas — agrupadas por módulo (apenas os módulos do curso do aluno) */
+    const gradesBody = body.querySelector('#progGradesBody');
+    if (gradesBody && HT.grades) {
+      HT.grades.render(gradesBody, { studentId, modules: activeModules });
+    }
   }
 
   document.getElementById('studentProgressClose')?.addEventListener('click', () => modals.close('studentProgressOverlay'));
