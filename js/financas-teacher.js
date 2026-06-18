@@ -101,7 +101,7 @@
     total: {
       icon:  'fa-hand-holding-dollar',
       title: 'A receber no período',
-      body:  'Soma do que você tem direito a receber no mês. Aulas com alunos presentes entram pelo valor base; faltas não justificadas entram pela metade do valor; justificadas entram quando forem repostas. Valores específicos por aluno (override) substituem o valor base no cálculo.',
+      body:  'Soma do que você tem direito a receber no mês. Aulas com alunos presentes entram pelo valor base; faltas não justificadas entram pela metade do valor; justificadas entram quando forem repostas. Valores específicos por aluno substituem o valor base no cálculo.',
     },
     present: {
       icon:  'fa-circle-check',
