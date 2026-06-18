@@ -4,16 +4,36 @@
    - Quando há class_id, uma sessão = (date, class_id) — uma aula, independente
      do número de alunos. O professor recebe UMA vez por sessão.
    - Quando não há class_id (aula individual), cada registro = uma cobrança.
-   - Sessão é PAGA se ao menos um aluno tem status ∈ PAID_STATUSES.
-   - Sessão é JUSTIFICADA (não paga) se TODOS os alunos estão justificados.
+   Fator de pagamento por sessão:
+   - 0    se todos os alunos estão JUSTIFIED
+   - 1.0  se há ao menos um PRESENT ou MAKEUP
+   - 0.5  se só há ABSENT (e talvez JUSTIFIED), sem nenhum PRESENT/MAKEUP
+          (falta não justificada paga metade ao professor)
    ========================================================================== */
 
 window.HT = window.HT || {};
 
 HT.payouts = (() => {
 
-  /* Statuses que geram pagamento ao professor */
-  const PAID_STATUSES = new Set(['present', 'absent', 'makeup']);
+  /* Fator de pagamento de UMA sessão (coletiva ou individual). */
+  function _sessionFactor(records) {
+    if (!records.length) return 0;
+    if (records.every(r => r.status === 'justified')) return 0;
+    if (records.some(r => r.status === 'present' || r.status === 'makeup')) return 1;
+    if (records.some(r => r.status === 'absent')) return 0.5;
+    return 0;
+  }
+  function _individualFactor(status) {
+    if (status === 'present' || status === 'makeup') return 1;
+    if (status === 'absent') return 0.5;
+    return 0;
+  }
+  /* Status representativo para exibição na tabela de aulas. */
+  function _sessionStatusLabel(records) {
+    if (records.every(r => r.status === 'justified')) return 'justified';
+    if (records.some(r => r.status === 'present' || r.status === 'makeup')) return 'present';
+    return 'absent';
+  }
 
   /**
    * Calcula payout do professor logado para o período {from, to}.
@@ -78,11 +98,12 @@ HT.payouts = (() => {
 
     /* ---- Sessões coletivas de turma ---- */
     sessionMap.forEach(session => {
-      const allJustified = session.records.every(r => r.status === 'justified');
-      const paid = !allJustified && session.records.some(r => PAID_STATUSES.has(r.status));
-      const rate = paid ? defaultRate : 0;
+      const factor = _sessionFactor(session.records);
+      const rate   = defaultRate * factor;
+      const paid   = factor > 0;
+      const status = _sessionStatusLabel(session.records);
 
-      if (allJustified) justifiedCount += 1;
+      if (status === 'justified') justifiedCount += 1;
       if (paid) { total += rate; count += 1; }
 
       const className = classMap[session.classId] || '(turma)';
@@ -91,9 +112,9 @@ HT.payouts = (() => {
         classId:      session.classId,
         className,
         label:        className,
-        status:       allJustified ? 'justified' : 'present',
+        status,
         studentCount: session.records.length,
-        rate, paid,
+        rate, paid, factor,
         isSession:    true,
       });
 
@@ -108,8 +129,9 @@ HT.payouts = (() => {
 
     /* ---- Aulas individuais (sem turma) ---- */
     individualAtt.forEach(a => {
-      const paid = PAID_STATUSES.has(a.status);
-      const rate = paid ? defaultRate : 0;
+      const factor = _individualFactor(a.status);
+      const rate   = defaultRate * factor;
+      const paid   = factor > 0;
 
       if (a.status === 'justified') justifiedCount += 1;
       if (paid) { total += rate; count += 1; }
@@ -123,7 +145,7 @@ HT.payouts = (() => {
         studentName,
         status:       a.status,
         studentCount: 1,
-        rate, paid,
+        rate, paid, factor,
         isSession:    false,
       });
 
@@ -202,30 +224,32 @@ HT.payouts = (() => {
     Object.values(byTeacher).forEach(t => {
       /* Sessões coletivas */
       t._sessions.forEach(records => {
+        const factor = _sessionFactor(records);
+        const rate   = t.defaultRate * factor;
         const allJustified = records.every(r => r.status === 'justified');
-        const paid = !allJustified && records.some(r => PAID_STATUSES.has(r.status));
         t.totalCount += 1;
         totalLessons  += 1;
         if (allJustified) { t.justifiedCount += 1; justifiedLessons += 1; }
-        if (paid) {
+        if (factor > 0) {
           t.paidCount  += 1;
-          t.total      += t.defaultRate;
+          t.total      += rate;
           paidLessons  += 1;
-          grandTotal   += t.defaultRate;
+          grandTotal   += rate;
         }
       });
 
       /* Aulas individuais */
       t._individual.forEach(a => {
-        const paid = PAID_STATUSES.has(a.status);
+        const factor = _individualFactor(a.status);
+        const rate   = t.defaultRate * factor;
         t.totalCount += 1;
         totalLessons  += 1;
         if (a.status === 'justified') { t.justifiedCount += 1; justifiedLessons += 1; }
-        if (paid) {
+        if (factor > 0) {
           t.paidCount  += 1;
-          t.total      += t.defaultRate;
+          t.total      += rate;
           paidLessons  += 1;
-          grandTotal   += t.defaultRate;
+          grandTotal   += rate;
         }
       });
 
@@ -240,5 +264,10 @@ HT.payouts = (() => {
     };
   }
 
-  return { getMyPayout, getAllTeachersPayout, PAID_STATUSES };
+  return {
+    getMyPayout,
+    getAllTeachersPayout,
+    sessionFactor:    _sessionFactor,
+    individualFactor: _individualFactor,
+  };
 })();
