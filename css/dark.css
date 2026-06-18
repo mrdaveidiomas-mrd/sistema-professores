@@ -623,7 +623,8 @@
   border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-md);
   overflow: hidden;
-  flex: 1;               /* grows to fill available space between cat-bar and pagination */
+  /* Sem flex:1 — com a seção de Notas abaixo, o body precisa rolar
+     verticalmente. flex:1 fazia este container engolir todo o espaço. */
 }
 
 /* Item row number */

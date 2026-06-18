@@ -466,10 +466,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.addEventListener('click', () => openStatusModal(btn.dataset.studentId, btn.dataset.contentId));
     });
 
-    /* Notas — agrupadas por módulo (apenas os módulos do curso do aluno) */
+    /* Notas — apenas do módulo da guia ativa */
     const gradesBody = body.querySelector('#progGradesBody');
     if (gradesBody && HT.grades) {
-      HT.grades.render(gradesBody, { studentId, modules: activeModules });
+      HT.grades.render(gradesBody, { studentId, modules: [mod] });
     }
   }
 
