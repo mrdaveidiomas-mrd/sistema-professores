@@ -1964,10 +1964,24 @@ h1,h2,h3,h4,h5,h6 { font-weight: 600; line-height: 1.3; }
 .modal--confirm { max-width: 420px; }
 
 /* Progress student modal — guias + paginação + seção de notas (rolável). */
+#studentProgressModal {
+  /* Sem overflow:hidden próprio garante que o body controle a rolagem. */
+  overflow: hidden;
+}
 #studentProgressModal .modal-body {
   padding: 14px 18px;
   gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* Cap explícito: altura máxima do modal (88vh desktop / 92vh mobile) menos
+     o cabeçalho ~74px. Garante que o body seja menor que o conteúdo quando há
+     currículo + paginação + notas, forçando o scroll vertical. */
+  max-height: calc(88vh - 74px);
   overflow-y: auto;
+  overscroll-behavior: contain;
+}
+@media (max-width: 767px) {
+  #studentProgressModal .modal-body { max-height: calc(92vh - 74px); }
 }
 
 .modal-header {
