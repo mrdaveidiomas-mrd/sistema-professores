@@ -44,11 +44,16 @@
 
     const data = await HT.payouts.getMyPayout({ from, to });
 
+    /* Separa aulas presentes (fator 1) das faltas pagas pela metade (fator 0,5). */
+    const presentCount = data.items.filter(i => i.factor === 1).length;
+    const absentCount  = data.items.filter(i => i.factor === 0.5).length;
+
     /* Cards de resumo */
-    document.getElementById('payoutTotal').textContent        = `R$ ${fmtBR(data.total)}`;
-    document.getElementById('payoutCount').textContent        = data.count;
-    document.getElementById('payoutTotalLessons').textContent = data.items.length;
-    document.getElementById('payoutJustified').textContent    = data.justifiedCount;
+    document.getElementById('payoutTotal').textContent     = `R$ ${fmtBR(data.total)}`;
+    document.getElementById('payoutCount').textContent     = data.count;
+    document.getElementById('payoutPresent').textContent   = presentCount;
+    document.getElementById('payoutAbsent').textContent    = absentCount;
+    document.getElementById('payoutJustified').textContent = data.justifiedCount;
 
     /* Por turma / aula */
     const byBody = document.getElementById('payoutByStudentBody');
@@ -91,6 +96,47 @@
     }
   }
 
+  /* -------------------- Modal de política de pagamento -------------------- */
+  const INFO = {
+    total: {
+      icon:  'fa-hand-holding-dollar',
+      title: 'A receber no período',
+      body:  'Soma do que você tem direito a receber no mês. Aulas com alunos presentes entram pelo valor base; faltas não justificadas entram pela metade do valor; justificadas entram quando forem repostas. Valores específicos por aluno (override) substituem o valor base no cálculo.',
+    },
+    present: {
+      icon:  'fa-circle-check',
+      title: 'Aulas',
+      body:  'Cada aula com alunos presentes é contabilizada de acordo com o valor base.',
+    },
+    absent: {
+      icon:  'fa-user-xmark',
+      title: 'Faltas',
+      body:  'As faltas ocorrem quando o aluno não avisa da sua ausência e não recebe direito à reposição. Nesses casos, o professor recebe metade do valor da aula.',
+    },
+    justified: {
+      icon:  'fa-circle-xmark',
+      title: 'Justificadas',
+      body:  'As aulas justificadas são aquelas que o aluno avisa sua ausência com antecedência e tem o direito de repor. Após reposição, o valor da aula é contabilizado integralmente para o professor.',
+    },
+  };
+
+  function openInfo(key) {
+    const info = INFO[key];
+    if (!info) return;
+    document.getElementById('payoutInfoIcon').className = `fa-solid ${info.icon}`;
+    document.getElementById('payoutInfoTitleText').textContent = info.title;
+    document.getElementById('payoutInfoBody').textContent = info.body;
+    HT.modals.open('payoutInfoOverlay');
+  }
+
+  function bindInfoCards() {
+    document.querySelectorAll('[data-payout-info]').forEach(card => {
+      card.addEventListener('click', () => openInfo(card.dataset.payoutInfo));
+    });
+    document.getElementById('payoutInfoOk')?.addEventListener('click',    () => HT.modals.close('payoutInfoOverlay'));
+    document.getElementById('payoutInfoClose')?.addEventListener('click', () => HT.modals.close('payoutInfoOverlay'));
+  }
+
   function bindPeriodNav() {
     document.getElementById('prevMonthBtn')?.addEventListener('click', () => {
       currentMonth.setMonth(currentMonth.getMonth() - 1);
@@ -114,6 +160,7 @@
     document.getElementById('addPaymentBtn')?.style.setProperty('display', 'none');
 
     bindPeriodNav();
+    bindInfoCards();
     try { await render(); } catch (err) {
       console.error('Erro ao calcular payout:', err);
     }

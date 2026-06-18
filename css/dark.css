@@ -1383,3 +1383,25 @@ td.text-small.textmuted{
 }
 .prog-grades-title i { color: var(--color-primary); }
 [data-theme="dark"] .prog-grades-section { border-top-color: var(--gray-200); }
+
+/* Stat cards clicáveis (painel de finanças do professor) */
+.stat-card--clickable {
+  cursor: pointer;
+  text-align: left;
+  border: 1.5px solid var(--gray-200);
+  font: inherit;
+  width: 100%;
+}
+.stat-card--clickable:hover { border-color: var(--color-primary); }
+.stat-card--clickable:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.stat-info-icon {
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-left: 4px;
+  vertical-align: middle;
+  transition: color 120ms ease;
+}
+.stat-card--clickable:hover .stat-info-icon { color: var(--color-primary); }
