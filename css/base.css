@@ -1980,6 +1980,10 @@ h1,h2,h3,h4,h5,h6 { font-weight: 600; line-height: 1.3; }
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+/* CRÍTICO: sem isso, o flex column do body encolhe os filhos para caber e
+   .prog-modal-items (overflow:hidden) corta as linhas. flex-shrink:0 mantém
+   o tamanho intrínseco de cada filho e força o body a rolar. */
+#studentProgressModal .modal-body > * { flex-shrink: 0; }
 @media (max-width: 767px) {
   #studentProgressModal .modal-body { max-height: calc(92vh - 74px); }
 }
