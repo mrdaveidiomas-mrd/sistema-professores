@@ -48,12 +48,12 @@
     const presentCount = data.items.filter(i => i.factor === 1).length;
     const absentCount  = data.items.filter(i => i.factor === 0.5).length;
 
-    /* Cards de resumo */
-    document.getElementById('payoutTotal').textContent     = `R$ ${fmtBR(data.total)}`;
-    document.getElementById('payoutCount').textContent     = data.count;
-    document.getElementById('payoutPresent').textContent   = presentCount;
-    document.getElementById('payoutAbsent').textContent    = absentCount;
-    document.getElementById('payoutJustified').textContent = data.justifiedCount;
+    /* Cards de resumo — null-safe pra sobreviver a mudanças no HTML/cache. */
+    HT.utils.setTextContent('payoutTotal',     `R$ ${fmtBR(data.total)}`);
+    HT.utils.setTextContent('payoutCount',     data.count);
+    HT.utils.setTextContent('payoutPresent',   presentCount);
+    HT.utils.setTextContent('payoutAbsent',    absentCount);
+    HT.utils.setTextContent('payoutJustified', data.justifiedCount);
 
     /* Por turma / aula */
     const byBody = document.getElementById('payoutByStudentBody');
