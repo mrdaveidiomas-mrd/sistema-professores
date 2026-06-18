@@ -53,6 +53,18 @@ HT.payouts = (() => {
       .select('default_lesson_rate').eq('id', user.id).single();
     const defaultRate = Number(prof?.default_lesson_rate || 0);
 
+    /* Overrides por aluno (student_teachers.rate_override). Aplicado em
+       aulas individuais; sessões de turma continuam usando o default. */
+    const { data: links } = await db.from('student_teachers')
+      .select('student_id, rate_override').eq('teacher_id', user.id);
+    const studentRate = {};
+    (links || []).forEach(l => {
+      studentRate[l.student_id] = l.rate_override != null
+        ? Number(l.rate_override)
+        : defaultRate;
+    });
+    const _rateFor = sid => (studentRate[sid] != null ? studentRate[sid] : defaultRate);
+
     /* Frequência no período — inclui class_id para agrupamento de sessões */
     let q = db.from('attendance')
       .select('id, student_id, class_id, date, status')
@@ -129,9 +141,10 @@ HT.payouts = (() => {
 
     /* ---- Aulas individuais (sem turma) ---- */
     individualAtt.forEach(a => {
-      const factor = _individualFactor(a.status);
-      const rate   = defaultRate * factor;
-      const paid   = factor > 0;
+      const factor   = _individualFactor(a.status);
+      const baseRate = _rateFor(a.student_id);
+      const rate     = baseRate * factor;
+      const paid     = factor > 0;
 
       if (a.status === 'justified') justifiedCount += 1;
       if (paid) { total += rate; count += 1; }
@@ -190,6 +203,16 @@ HT.payouts = (() => {
     const { data: att, error: aErr } = await q;
     if (aErr) throw aErr;
 
+    /* Overrides aluno↔professor (rate_override). Mapa: "tid:sid" → rate. */
+    const { data: links } = await db.from('student_teachers')
+      .select('teacher_id, student_id, rate_override');
+    const overrideMap = {};
+    (links || []).forEach(l => {
+      if (l.rate_override != null) {
+        overrideMap[`${l.teacher_id}:${l.student_id}`] = Number(l.rate_override);
+      }
+    });
+
     /* Buckets por professor */
     const byTeacher = {};
     (teachers || []).forEach(t => {
@@ -240,8 +263,9 @@ HT.payouts = (() => {
 
       /* Aulas individuais */
       t._individual.forEach(a => {
-        const factor = _individualFactor(a.status);
-        const rate   = t.defaultRate * factor;
+        const factor   = _individualFactor(a.status);
+        const baseRate = overrideMap[`${t.teacherId}:${a.student_id}`] ?? t.defaultRate;
+        const rate     = baseRate * factor;
         t.totalCount += 1;
         totalLessons  += 1;
         if (a.status === 'justified') { t.justifiedCount += 1; justifiedLessons += 1; }
