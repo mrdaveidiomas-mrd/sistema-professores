@@ -44,6 +44,11 @@
 
     const data = await HT.payouts.getMyPayout({ from, to });
 
+    /* DIAG: surface runtime state for inspection (remove após confirmar). */
+    console.log('[payout debug]', { from, to, total: data.total,
+      itemCount: data.items?.length, byClass: data.byClass?.length,
+      factors: (data.items || []).map(i => i.factor) });
+
     /* Separa aulas presentes (fator 1) das faltas pagas pela metade (fator 0,5). */
     const presentCount = data.items.filter(i => i.factor === 1).length;
     const absentCount  = data.items.filter(i => i.factor === 0.5).length;
