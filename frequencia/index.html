@@ -91,42 +91,42 @@
       <!-- Summary Stats -->
       <section class="stats-section stats-section--sm" aria-label="Resumo de frequência">
         <div class="stats-grid stats-grid--4">
-          <div class="stat-card stat-card--sm">
+          <button type="button" class="stat-card stat-card--sm stat-card--clickable" data-freq-info="lessons">
             <div class="stat-icon">
               <i class="fa-regular fa-calendar-days"></i>
             </div>
             <div class="stat-body">
-              <span class="stat-label">Aulas este mês</span>
+              <span class="stat-label">Aulas este mês <i class="fa-solid fa-circle-info stat-info-icon" aria-hidden="true"></i></span>
               <span class="stat-value" id="statMonthLessons">0</span>
             </div>
-          </div>
-          <div class="stat-card stat-card--sm stat-card--success">
+          </button>
+          <button type="button" class="stat-card stat-card--sm stat-card--success stat-card--clickable" data-freq-info="present">
             <div class="stat-icon">
               <i class="fa-solid fa-circle-check"></i>
             </div>
             <div class="stat-body">
-              <span class="stat-label">Presenças</span>
+              <span class="stat-label">Presenças <i class="fa-solid fa-circle-info stat-info-icon" aria-hidden="true"></i></span>
               <span class="stat-value" id="statMonthPresent">0</span>
             </div>
-          </div>
-          <div class="stat-card stat-card--sm stat-card--danger">
+          </button>
+          <button type="button" class="stat-card stat-card--sm stat-card--danger stat-card--clickable" data-freq-info="absent">
             <div class="stat-icon">
               <i class="fa-solid fa-circle-xmark"></i>
             </div>
             <div class="stat-body">
-              <span class="stat-label">Faltas</span>
+              <span class="stat-label">Faltas <i class="fa-solid fa-circle-info stat-info-icon" aria-hidden="true"></i></span>
               <span class="stat-value" id="statMonthAbsent">0</span>
             </div>
-          </div>
-          <div class="stat-card stat-card--sm stat-card--info">
+          </button>
+          <button type="button" class="stat-card stat-card--sm stat-card--info stat-card--clickable" data-freq-info="rate">
             <div class="stat-icon">
               <i class="fa-solid fa-percent"></i>
             </div>
             <div class="stat-body">
-              <span class="stat-label">Frequência média</span>
+              <span class="stat-label">Frequência média <i class="fa-solid fa-circle-info stat-info-icon" aria-hidden="true"></i></span>
               <span class="stat-value" id="statMonthRate">0%</span>
             </div>
-          </div>
+          </button>
         </div>
       </section>
 
@@ -421,6 +421,22 @@
           <i class="fa-solid fa-trash"></i>
           Excluir
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: Política de Frequência ===================== -->
+  <div class="modal-overlay" id="freqInfoOverlay" aria-hidden="true">
+    <div class="modal modal--confirm" role="dialog" aria-modal="true" aria-labelledby="freqInfoTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="freqInfoTitle"><i class="fa-solid fa-circle-info" id="freqInfoIcon"></i> <span id="freqInfoTitleText">Sobre este card</span></h3>
+        <button type="button" class="modal-close" id="freqInfoClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p id="freqInfoBody" style="margin:0;line-height:1.6"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn--primary" id="freqInfoOk">Entendi</button>
       </div>
     </div>
   </div>

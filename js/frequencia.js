@@ -51,6 +51,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     setDefaultDates();
     loadStats();
     render();
+    bindFreqInfo();
+  }
+
+  /* ====== Modal de política dos cards de frequência ====== */
+  const FREQ_INFO = {
+    lessons: {
+      icon:  'fa-calendar-days',
+      title: 'Aulas este mês',
+      body:  'Conta o número de AULAS realizadas no mês — não de registros de aluno. Uma turma com vários alunos no mesmo dia conta como UMA única aula. Aulas individuais (sem turma) contam por registro.',
+    },
+    present: {
+      icon:  'fa-circle-check',
+      title: 'Presenças',
+      body:  'Conta as aulas em que pelo menos um aluno esteve presente (ou em reposição). Em turmas, basta um aluno presente para a aula inteira contar como presença.',
+    },
+    absent: {
+      icon:  'fa-circle-xmark',
+      title: 'Faltas',
+      body:  'Conta as aulas em que nenhum aluno esteve presente. Em turmas, só conta como falta se todos os alunos faltaram (justificada ou não). Justificadas isoladas também entram aqui, pois o aluno não esteve em sala.',
+    },
+    rate: {
+      icon:  'fa-percent',
+      title: 'Frequência média',
+      body:  'Percentual de aulas com presença sobre o total de aulas no mês. Calculado por sessão: Presenças ÷ Aulas. Uma turma com 5 alunos onde só 1 compareceu conta como 1 aula presente (100%), não como 20%.',
+    },
+  };
+
+  function openFreqInfo(key) {
+    const info = FREQ_INFO[key];
+    if (!info) return;
+    document.getElementById('freqInfoIcon').className = `fa-solid ${info.icon}`;
+    document.getElementById('freqInfoTitleText').textContent = info.title;
+    document.getElementById('freqInfoBody').textContent = info.body;
+    modals.open('freqInfoOverlay');
+  }
+
+  function bindFreqInfo() {
+    document.querySelectorAll('[data-freq-info]').forEach(card => {
+      card.addEventListener('click', () => openFreqInfo(card.dataset.freqInfo));
+    });
+    document.getElementById('freqInfoOk')?.addEventListener('click',    () => modals.close('freqInfoOverlay'));
+    document.getElementById('freqInfoClose')?.addEventListener('click', () => modals.close('freqInfoOverlay'));
   }
 
   function setDefaultDates() {
@@ -66,15 +108,35 @@ document.addEventListener('DOMContentLoaded', async () => {
       + allClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   }
 
-  /* ====== Stats ====== */
+  /* ====== Stats ======
+     Conta por SESSÃO (não por aluno):
+     - Sessão de turma = (date, classId) — todos os registros do mesmo dia/turma
+       formam UMA aula. Aulas individuais = 1 registro = 1 sessão.
+     - Sessão conta como "Presença" se algum aluno foi present/makeup.
+     - Caso contrário (todos absent/justified) conta como "Falta".
+     - Frequência média = Presenças / Aulas.
+  */
   function loadStats() {
     const month   = utils.getCurrentMonth();
     const records = allAttendance.filter(r => r.date.startsWith(month));
-    const present = records.filter(r => r.status === 'present').length;
-    const absent  = records.filter(r => r.status !== 'present').length;
-    const rate    = records.length ? Math.round((present / records.length) * 100) : 0;
 
-    utils.setTextContent('statMonthLessons', records.length);
+    const sessions = new Map(); /* key → [records] */
+    records.forEach(r => {
+      const key = r.classId ? `c:${r.date}:${r.classId}` : `i:${r.id}`;
+      if (!sessions.has(key)) sessions.set(key, []);
+      sessions.get(key).push(r);
+    });
+
+    let present = 0;
+    sessions.forEach(recs => {
+      const hasPresent = recs.some(r => r.status === 'present' || r.status === 'makeup');
+      if (hasPresent) present += 1;
+    });
+    const total  = sessions.size;
+    const absent = total - present;
+    const rate   = total ? Math.round((present / total) * 100) : 0;
+
+    utils.setTextContent('statMonthLessons', total);
     utils.setTextContent('statMonthPresent', present);
     utils.setTextContent('statMonthAbsent',  absent);
     utils.setTextContent('statMonthRate',    `${rate}%`);
