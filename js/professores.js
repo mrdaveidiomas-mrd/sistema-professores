@@ -183,8 +183,9 @@ HT.professores = (() => {
             <span class="checkbox-custom"></span>
             <span>${escapeHTML(s.name)}</span>
           </label>
-          <input type="number" class="form-input ts-rate" placeholder="R$ aula"
+          <input type="number" class="form-input ts-rate" placeholder="R$/hora"
                  min="0" step="0.01" value="${rate}" style="max-width:120px"
+                 title="Valor por hora específico deste aluno (opcional)"
                  ${checked ? '' : 'disabled'} />
         </div>`;
     }).join('');

@@ -14,6 +14,9 @@ HT.materiais = (() => {
   let role            = 'teacher';
   let currentFolderId = null;   /* null = vista raiz */
   let pendingFile     = null;
+  let sortMode        = 'date-desc';   /* date-desc | date-asc | name-asc | name-desc */
+
+  const SORT_KEY = 'ht_materials_sort';
 
   /* ── tipos de arquivo ── */
   const FILE_TYPES = {
@@ -122,7 +125,49 @@ HT.materiais = (() => {
   const content  = () => document.getElementById('materialsContent');
   const countEl  = () => document.getElementById('materialsCount');
   const searchInp = () => document.getElementById('materialSearch');
+  const sortSel   = () => document.getElementById('materialSort');
   const breadcrumb = () => document.getElementById('breadcrumb');
+
+  /* ── ordenação ── */
+  const _nameCmp = (a, b) => (a || '').localeCompare(b || '', 'pt-BR', { sensitivity: 'base' });
+  const _dateOf  = iso => (iso ? new Date(iso).getTime() : 0);
+
+  /* Data de modificação de uma pasta = arquivo mais recente dentro dela,
+     ou o created_at da pasta se estiver vazia. */
+  function folderModifiedAt(folder) {
+    let latest = _dateOf(folder.createdAt);
+    materials.forEach(m => {
+      if (m.folderId === folder.id) {
+        const t = _dateOf(m.updatedAt || m.createdAt);
+        if (t > latest) latest = t;
+      }
+    });
+    return latest;
+  }
+
+  function sortMaterials(list) {
+    const arr = list.slice();
+    switch (sortMode) {
+      case 'name-asc':  arr.sort((a, b) =>  _nameCmp(a.name, b.name)); break;
+      case 'name-desc': arr.sort((a, b) => -_nameCmp(a.name, b.name)); break;
+      case 'date-asc':  arr.sort((a, b) => _dateOf(a.updatedAt || a.createdAt) - _dateOf(b.updatedAt || b.createdAt)); break;
+      case 'date-desc':
+      default:          arr.sort((a, b) => _dateOf(b.updatedAt || b.createdAt) - _dateOf(a.updatedAt || a.createdAt)); break;
+    }
+    return arr;
+  }
+
+  function sortFolders(list) {
+    const arr = list.slice();
+    switch (sortMode) {
+      case 'name-asc':  arr.sort((a, b) =>  _nameCmp(a.name, b.name)); break;
+      case 'name-desc': arr.sort((a, b) => -_nameCmp(a.name, b.name)); break;
+      case 'date-asc':  arr.sort((a, b) => folderModifiedAt(a) - folderModifiedAt(b)); break;
+      case 'date-desc':
+      default:          arr.sort((a, b) => folderModifiedAt(b) - folderModifiedAt(a)); break;
+    }
+    return arr;
+  }
 
   /* ====================================================================
      BREADCRUMB
@@ -174,15 +219,16 @@ HT.materiais = (() => {
 
   /* ── Vista raiz: pastas + arquivos sem pasta ── */
   function renderRoot() {
-    const ungrouped = materials.filter(m => !m.folderId);
+    const ungrouped     = sortMaterials(materials.filter(m => !m.folderId));
+    const sortedFolders = sortFolders(folders);
     const fCount = id => materials.filter(m => m.folderId === id).length;
     countEl().textContent = '';
 
     let html = '';
 
-    if (folders.length) {
+    if (sortedFolders.length) {
       html += `<div class="folders-grid" id="foldersGrid">`;
-      html += folders.map(f => {
+      html += sortedFolders.map(f => {
         const count = fCount(f.id);
         const adminBtns = role === 'admin' ? `
           <button class="card-menu-btn" data-folder-menu="${f.id}"
@@ -222,7 +268,7 @@ HT.materiais = (() => {
 
   /* ── Vista de pasta: arquivos dentro de uma pasta ── */
   function renderFolderContents(folderId) {
-    const list = materials.filter(m => m.folderId === folderId);
+    const list = sortMaterials(materials.filter(m => m.folderId === folderId));
     countEl().textContent = list.length
       ? `${list.length} material${list.length !== 1 ? 'is' : ''}`
       : '';
@@ -239,11 +285,11 @@ HT.materiais = (() => {
 
   /* ── Busca global (ignora pasta atual) ── */
   function renderSearch(q) {
-    const list = materials.filter(m =>
+    const list = sortMaterials(materials.filter(m =>
       m.name.toLowerCase().includes(q) ||
       m.description.toLowerCase().includes(q) ||
       (m.category || '').toLowerCase().includes(q)
-    );
+    ));
 
     countEl().textContent = list.length
       ? `${list.length} resultado${list.length !== 1 ? 's' : ''}`
@@ -783,6 +829,21 @@ HT.materiais = (() => {
 
     /* Busca */
     searchInp().addEventListener('input', HT.utils.debounce(() => renderView(), 250));
+
+    /* Ordenação */
+    try {
+      const saved = localStorage.getItem(SORT_KEY);
+      if (saved) sortMode = saved;
+    } catch {}
+    const sel = sortSel();
+    if (sel) {
+      sel.value = sortMode;
+      sel.addEventListener('change', () => {
+        sortMode = sel.value;
+        try { localStorage.setItem(SORT_KEY, sortMode); } catch {}
+        renderView();
+      });
+    }
 
     await load();
   }

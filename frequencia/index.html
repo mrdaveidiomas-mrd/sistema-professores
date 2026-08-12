@@ -257,7 +257,7 @@
       <form class="modal-body" id="attForm" novalidate>
         <input type="hidden" id="attId" name="attId" />
 
-        <div class="form-row form-row--2">
+        <div class="form-row form-row--3">
           <div class="form-group">
             <label for="attDate" class="form-label">Data da aula <span class="required">*</span></label>
             <input type="date" id="attDate" name="date" class="form-input" required />
@@ -269,6 +269,16 @@
               <option value="">Aula individual / Sem turma</option>
               <!-- Populated by JS -->
             </select>
+          </div>
+          <div class="form-group">
+            <label for="attDuration" class="form-label">
+              Duração (min) <span class="required">*</span>
+            </label>
+            <input type="number" id="attDuration" name="durationMinutes"
+                   class="form-input" min="1" max="480" step="5"
+                   value="60" required
+                   title="Afeta o pagamento proporcionalmente ao valor por hora" />
+            <span class="form-error" id="attDurationError"></span>
           </div>
         </div>
 
@@ -300,7 +310,7 @@
           <label for="attLessonContent" class="form-label">
             <i class="fa-solid fa-book-open-reader" style="color:var(--color-primary);margin-right:6px;"></i>
             Conteúdo ministrado
-            <span class="text-muted" style="font-weight:400"> (opcional)</span>
+            <!--<span class="text-muted" style="font-weight:400"> (opcional)</span>-->
           </label>
           <textarea id="attLessonContent" name="lessonContent" class="form-textarea" placeholder="Ex: Present Perfect — uso com already / yet / just. Exercícios de speaking..." rows="2"></textarea>
         </div>
@@ -309,7 +319,7 @@
           <label class="form-label">
             <i class="fa-solid fa-list-check" style="color:var(--color-primary);margin-right:6px;"></i>
             Vincular ao currículo
-            <span class="text-muted" style="font-weight:400"> (opcional — registra progresso nos alunos presentes)</span>
+            <!--<span class="text-muted" style="font-weight:400"> (opcional — registra progresso nos alunos presentes)</span>-->
           </label>
           <div class="att-curriculum-picker" id="attCurriculumPicker">
             <div class="att-curriculum-empty">Carregando conteúdos...</div>
@@ -380,6 +390,13 @@
               Falta justificada
             </label>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label for="attEditDuration" class="form-label">Duração da aula (min) <span class="required">*</span></label>
+          <input type="number" id="attEditDuration" name="durationMinutes"
+                 class="form-input" min="1" max="480" step="5"
+                 value="60" style="max-width:160px" required />
         </div>
         <div class="form-group">
           <label for="attEditLessonContent" class="form-label">

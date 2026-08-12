@@ -361,6 +361,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       .map(cb => cb.value);
   }
 
+  /* ====== Duração default por status ====== */
+  const DEFAULT_DURATION_BY_STATUS = { present: 60, absent: 60, justified: 60, makeup: 30 };
+
+  /* Retorna a 1ª duração planejada do slot desta turma (ou null) */
+  function scheduleDurationForClass(classId) {
+    const cls = findClass(classId);
+    const sch = cls?.schedules?.[0];
+    return sch?.duration ? Number(sch.duration) : null;
+  }
+
+  /* Duração planejada para um aluno individual — usa o 1º schedule dele */
+  function scheduleDurationForStudent(studentId) {
+    const s = findStudent(studentId);
+    const sch = s?.schedules?.[0];
+    return sch?.duration ? Number(sch.duration) : null;
+  }
+
   /* ====== Modal Registrar Aula ====== */
   function openAttModal() {
     const form = document.getElementById('attForm');
@@ -369,6 +386,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('attId').value = '';
     document.getElementById('attModalTitle').textContent = 'Registrar Aula';
     document.getElementById('attDate').value = utils.getCurrentDate();
+    const dur = document.getElementById('attDuration');
+    if (dur) dur.value = 60;
     const lc = document.getElementById('attLessonContent');
     if (lc) lc.value = '';
 
@@ -389,7 +408,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ---------- Selecionar turma no modal ---------- */
   document.getElementById('attClassSelect')?.addEventListener('change', (e) => {
-    buildStudentList(e.target.value || null);
+    const classId = e.target.value || null;
+    buildStudentList(classId);
+    if (classId) {
+      const planned = scheduleDurationForClass(classId);
+      if (planned) {
+        const durEl = document.getElementById('attDuration');
+        if (durEl) durEl.value = planned;
+      }
+    }
   });
 
   /* ---- Cria um elemento .att-student-row com handlers de status ---- */
@@ -430,8 +457,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       row.querySelector('.att-remove-student').addEventListener('click', () => {
         row.remove();
         _syncIndividualEmpty();
-        _refreshIndividualSearch();  // re-abre o dropdown se tiver busca ativa
-        _refreshIndividualSelect();  // recoloca o aluno nas opções do seletor
+        _refreshCombobox();  // recoloca o aluno nas opções do combobox
       });
     }
 
@@ -455,112 +481,74 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  /* ---- Atualiza o dropdown de busca (exclui já adicionados) ---- */
-  function _refreshIndividualSearch() {
-    const inp = document.getElementById('attStudentSearchInput');
-    if (inp && inp.value.trim()) inp.dispatchEvent(new Event('input'));
-  }
-
-  /* ---- Configura a busca de alunos no modo individual ---- */
-  function _setupIndividualSearch() {
-    const inp      = document.getElementById('attStudentSearchInput');
-    const dropdown = document.getElementById('attStudentDropdown');
+  /* ---- Combobox unificado: busca + dropdown com chevron ---- */
+  function _setupCombobox() {
+    const wrap     = document.getElementById('attStudentCombo');
+    const inp      = document.getElementById('attStudentComboInput');
+    const chev     = document.getElementById('attStudentComboChevron');
+    const dropdown = document.getElementById('attStudentComboDropdown');
     const sel      = document.getElementById('attSelectedStudents');
-    if (!inp || !dropdown || !sel) return;
+    if (!wrap || !inp || !dropdown || !sel) return;
 
     const getAddedIds = () =>
       new Set([...sel.querySelectorAll('.att-student-row')].map(r => r.dataset.studentId));
 
-    inp.addEventListener('input', utils.debounce(() => {
+    function renderList() {
       const q = inp.value.trim().toLowerCase();
-      if (!q) { dropdown.hidden = true; return; }
+      const added = getAddedIds();
+      const list = allStudents
+        .filter(s => !added.has(s.id) && (!q || s.name.toLowerCase().includes(q)))
+        .sort((a, b) => a.name.localeCompare(b.name));
 
-      const added   = getAddedIds();
-      const matches = allStudents
-        .filter(s => s.name.toLowerCase().includes(q) && !added.has(s.id))
-        .slice(0, 7);
-
-      if (!matches.length) {
-        dropdown.innerHTML = `<div class="att-dropdown-empty">Nenhum aluno encontrado</div>`;
-      } else {
-        dropdown.innerHTML = matches.map(s => {
-          const lvl = utils.formatLevelShort(s.level || '');
-          return `<div class="att-dropdown-item" data-id="${s.id}" role="option">
-            <span class="att-dropdown-name">${s.name}</span>
-            ${lvl ? `<span class="level-badge">${lvl}</span>` : ''}
-          </div>`;
-        }).join('');
-
-        dropdown.querySelectorAll('.att-dropdown-item').forEach(item => {
-          item.addEventListener('mousedown', (e) => {
-            e.preventDefault(); // evita blur no input antes do click
-            const s = findStudent(item.dataset.id);
-            if (!s) return;
-            const emptyEl = sel.querySelector('.att-individual-empty');
-            if (emptyEl) emptyEl.remove();
-            sel.appendChild(makeStudentRow(s, { removable: true }));
-            inp.value = '';
-            dropdown.hidden = true;
-            _refreshIndividualSelect(); // remove o aluno das opções do seletor
-            inp.focus();
-          });
-        });
+      if (!list.length) {
+        dropdown.innerHTML = `<div class="att-dropdown-empty">${q ? 'Nenhum aluno encontrado' : 'Todos os alunos já foram adicionados'}</div>`;
+        return;
       }
-      dropdown.hidden = false;
-    }, 200));
-
-    inp.addEventListener('blur', () => {
-      // Pequeno delay para deixar o mousedown do item disparar antes
-      setTimeout(() => { dropdown.hidden = true; }, 150);
-    });
-
-    inp.addEventListener('focus', () => {
-      if (inp.value.trim()) dropdown.hidden = false;
-    });
-  }
-
-  /* ---- Atualiza as opções do <select> (exclui alunos já adicionados) ---- */
-  function _refreshIndividualSelect() {
-    const select = document.getElementById('attStudentSelect');
-    const added  = document.getElementById('attSelectedStudents');
-    if (!select || !added) return;
-
-    const addedIds  = new Set([...added.querySelectorAll('.att-student-row')].map(r => r.dataset.studentId));
-    const available = allStudents
-      .filter(s => !addedIds.has(s.id))
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    const prev = select.value; // tenta preservar seleção atual
-    select.innerHTML = `<option value="">Escolher da lista...</option>` +
-      available.map(s => {
+      dropdown.innerHTML = list.map(s => {
         const lvl = utils.formatLevelShort(s.level || '');
-        return `<option value="${s.id}">${s.name}${lvl ? ` — ${lvl}` : ''}</option>`;
+        return `<div class="att-dropdown-item" data-id="${s.id}" role="option">
+          <span class="att-dropdown-name">${s.name}</span>
+          ${lvl ? `<span class="level-badge">${lvl}</span>` : ''}
+        </div>`;
       }).join('');
 
-    if (available.find(s => s.id === prev)) select.value = prev;
+      dropdown.querySelectorAll('.att-dropdown-item').forEach(item => {
+        item.addEventListener('mousedown', e => {
+          e.preventDefault();  /* evita blur antes do click */
+          const s = findStudent(item.dataset.id);
+          if (!s) return;
+          const emptyEl = sel.querySelector('.att-individual-empty');
+          if (emptyEl) emptyEl.remove();
+          sel.appendChild(makeStudentRow(s, { removable: true }));
+          inp.value = '';
+          renderList();       /* atualiza a lista, mantém o dropdown aberto */
+          inp.focus();
+        });
+      });
+    }
+
+    function open()  { renderList(); dropdown.hidden = false; wrap.classList.add('is-open');  inp.setAttribute('aria-expanded', 'true');  }
+    function close() { dropdown.hidden = true;  wrap.classList.remove('is-open'); inp.setAttribute('aria-expanded', 'false'); }
+
+    inp.addEventListener('focus', open);
+    inp.addEventListener('input', utils.debounce(renderList, 150));
+    inp.addEventListener('keydown', e => { if (e.key === 'Escape') { close(); inp.blur(); } });
+
+    /* Chevron abre/fecha */
+    chev?.addEventListener('mousedown', e => {
+      e.preventDefault();
+      if (dropdown.hidden) { inp.focus(); open(); } else { close(); }
+    });
+
+    /* Fechar ao clicar fora */
+    inp.addEventListener('blur', () => setTimeout(close, 150));
   }
 
-  /* ---- Configura o botão "Adicionar" do seletor ---- */
-  function _setupIndividualSelect() {
-    const select  = document.getElementById('attStudentSelect');
-    const addBtn  = document.getElementById('attStudentSelectAdd');
-    const sel     = document.getElementById('attSelectedStudents');
-    if (!select || !addBtn || !sel) return;
-
-    _refreshIndividualSelect(); // popula as opções iniciais
-
-    addBtn.addEventListener('click', () => {
-      const id = select.value;
-      if (!id) return;
-      const s = findStudent(id);
-      if (!s) return;
-      const emptyEl = sel.querySelector('.att-individual-empty');
-      if (emptyEl) emptyEl.remove();
-      sel.appendChild(makeStudentRow(s, { removable: true }));
-      select.value = '';
-      _refreshIndividualSelect();  // remove o aluno das opções
-      _refreshIndividualSearch();  // sincroniza o dropdown de busca
-    });
+  /* Sincroniza o combobox após remover um aluno da lista de selecionados */
+  function _refreshCombobox() {
+    const inp = document.getElementById('attStudentComboInput');
+    const dropdown = document.getElementById('attStudentComboDropdown');
+    if (inp && dropdown && !dropdown.hidden) inp.dispatchEvent(new Event('input'));
   }
 
   /* ---- buildStudentList: ponto de entrada ---- */
@@ -585,37 +573,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    /* ---- MODO INDIVIDUAL: busca manual, sem pré-seleção ---- */
+    /* ---- MODO INDIVIDUAL: combobox único (busca + dropdown com chevron) ---- */
     container.classList.add('att-students-selector--individual');
     container.innerHTML = `
       <div class="att-student-search-wrap">
-
-        <!-- Opção 1: busca por nome -->
-        <div class="att-search-option">
-          <span class="att-search-option-label"><i class="fa-solid fa-magnifying-glass"></i> Buscar pelo nome</span>
-          <div style="position:relative">
-            <input type="text" id="attStudentSearchInput" class="form-input att-search-input"
-                   placeholder="Digite o nome do aluno..." autocomplete="off" />
-            <div class="att-student-dropdown" id="attStudentDropdown" hidden></div>
-          </div>
+        <span class="att-search-option-label"><i class="fa-solid fa-user-plus"></i> Adicionar alunos</span>
+        <div class="att-combo" id="attStudentCombo">
+          <i class="fa-solid fa-magnifying-glass att-combo-icon"></i>
+          <input type="text" id="attStudentComboInput" class="form-input att-combo-input"
+                 placeholder="Buscar ou escolher da lista..." autocomplete="off"
+                 role="combobox" aria-autocomplete="list"
+                 aria-controls="attStudentComboDropdown" aria-expanded="false" />
+          <button type="button" id="attStudentComboChevron" class="att-combo-chevron"
+                  aria-label="Abrir lista de alunos" tabindex="-1">
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="att-student-dropdown att-combo-dropdown" id="attStudentComboDropdown"
+               role="listbox" hidden></div>
         </div>
-
-        <!-- Divisor -->
-        <div class="att-search-or"><span>ou</span></div>
-
-        <!-- Opção 2: seletor da lista completa -->
-        <div class="att-search-option">
-          <span class="att-search-option-label"><i class="fa-solid fa-list"></i> Escolher da lista</span>
-          <div class="att-select-row">
-            <select id="attStudentSelect" class="form-select" style="flex:1">
-              <option value="">Escolher da lista...</option>
-            </select>
-            <button type="button" id="attStudentSelectAdd" class="btn btn--primary" title="Adicionar aluno">
-              <i class="fa-solid fa-plus"></i> Adicionar
-            </button>
-          </div>
-        </div>
-
       </div>
       <div id="attSelectedStudents">
         <div class="att-individual-empty">
@@ -624,8 +599,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>`;
 
-    _setupIndividualSearch();
-    _setupIndividualSelect();
+    _setupCombobox();
   }
 
   /* Quick actions */
@@ -655,9 +629,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const notes         = document.getElementById('attGeneralNotes')?.value || '';
     const lessonContent = document.getElementById('attLessonContent')?.value.trim() || '';
     const contentIds    = getCheckedContentIds();
+    const durationRaw   = document.getElementById('attDuration')?.value;
+    const duration      = Number(durationRaw);
+
+    document.getElementById('attDateError').textContent     = '';
+    document.getElementById('attDurationError').textContent = '';
 
     if (!dateVal) {
       document.getElementById('attDateError').textContent = 'Informe a data.';
+      return;
+    }
+    if (!duration || duration <= 0) {
+      document.getElementById('attDurationError').textContent = 'Informe a duração em minutos.';
       return;
     }
 
@@ -702,6 +685,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       for (const { studentId, status } of attRows) {
         await storage.saveAttendance({
           studentId, classId, date: dateVal, status, notes, lessonContent,
+          durationMinutes: duration,
           teacherId: contextTeacherId,
         });
       }
@@ -754,6 +738,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('attEditLessonContent').value = record.lessonContent || '';
     document.getElementById('attEditNotes').value         = record.notes || '';
 
+    /* Duração: usa a salva; se ausente, cai no schedule (turma > aluno) ou default do status */
+    const fallback = (record.classId && scheduleDurationForClass(record.classId))
+                  || scheduleDurationForStudent(record.studentId)
+                  || DEFAULT_DURATION_BY_STATUS[record.status]
+                  || 60;
+    document.getElementById('attEditDuration').value = record.durationMinutes ?? fallback;
+
     const radio = document.querySelector(`#attEditForm input[name="status"][value="${record.status}"]`);
     if (radio) radio.checked = true;
 
@@ -770,6 +761,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const status        = document.querySelector('#attEditForm input[name="status"]:checked')?.value;
     const lessonContent = document.getElementById('attEditLessonContent')?.value.trim() || '';
     const notes         = document.getElementById('attEditNotes').value;
+    const durationRaw   = document.getElementById('attEditDuration')?.value;
+    const duration      = Number(durationRaw);
 
     const errEl = document.getElementById('attEditStudentError');
     if (!studentId) {
@@ -778,9 +771,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     if (errEl) errEl.textContent = '';
     if (!status) return;
+    if (!duration || duration <= 0) {
+      utils.showToast('Informe a duração da aula em minutos.', 'error');
+      return;
+    }
 
     try {
-      await storage.saveAttendance({ id, studentId, date, status, lessonContent, notes });
+      await storage.saveAttendance({ id, studentId, date, status, lessonContent, notes,
+                                     durationMinutes: duration });
       modals.close('attEditOverlay');
       utils.showToast('Frequência atualizada!', 'success');
       allAttendance = await storage.getAttendance();

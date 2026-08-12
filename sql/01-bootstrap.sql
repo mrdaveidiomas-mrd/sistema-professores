@@ -66,7 +66,7 @@ create table profiles (
   subject             text,
   bio                 text,
   photo               text,
-  default_lesson_rate numeric(10,2),
+  default_lesson_rate numeric(10,2),  -- R$/HORA (pagamento é proporcional à duration_minutes da attendance)
   active              boolean not null default true,
   created_at          timestamptz default now(),
   updated_at          timestamptz default now()
@@ -184,7 +184,7 @@ create policy "students admin all" on students for all
 create table student_teachers (
   student_id    uuid references students(id) on delete cascade,
   teacher_id    uuid references profiles(id) on delete cascade,
-  rate_override numeric(10,2),
+  rate_override numeric(10,2),  -- R$/HORA específico deste aluno; se null usa profiles.default_lesson_rate
   created_at    timestamptz default now(),
   primary key (student_id, teacher_id)
 );
@@ -206,15 +206,16 @@ create policy "students teacher read" on students for select
 -- SEÇÃO 4 — Attendance (frequência)
 -- =========================================================================
 create table attendance (
-  id             uuid primary key default gen_random_uuid(),
-  student_id     uuid references students(id) on delete cascade,
-  class_id       uuid references classes(id) on delete set null,
-  teacher_id     uuid references profiles(id) on delete set null,
-  date           date not null,
-  status         text not null check (status in ('present','absent','justified','makeup')),
-  lesson_content text,
-  notes          text,
-  created_at     timestamptz default now()
+  id               uuid primary key default gen_random_uuid(),
+  student_id       uuid references students(id) on delete cascade,
+  class_id         uuid references classes(id) on delete set null,
+  teacher_id       uuid references profiles(id) on delete set null,
+  date             date not null,
+  status           text not null check (status in ('present','absent','justified','makeup')),
+  duration_minutes int  check (duration_minutes is null or duration_minutes > 0),
+  lesson_content   text,
+  notes            text,
+  created_at       timestamptz default now()
 );
 alter table attendance enable row level security;
 

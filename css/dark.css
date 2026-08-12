@@ -160,6 +160,7 @@
 [data-theme="dark"] .att-student-dropdown { background: var(--gray-50); border-color: var(--gray-200); box-shadow: 0 6px 16px rgba(0,0,0,.35); }
 [data-theme="dark"] .att-dropdown-item { border-bottom-color: var(--gray-200); }
 [data-theme="dark"] .att-dropdown-item:hover { background: var(--gray-100); }
+[data-theme="dark"] .att-combo-chevron:hover { background: var(--gray-100); }
 [data-theme="dark"] .att-individual-empty { color: var(--gray-300); }
 
 /* Itens de alunos na turma */

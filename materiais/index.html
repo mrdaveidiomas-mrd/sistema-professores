@@ -75,12 +75,20 @@
       <!-- Breadcrumb (injetado pelo JS) -->
       <nav class="breadcrumb" id="breadcrumb" style="display:none" aria-label="Navegação"></nav>
 
-      <!-- Busca -->
-      <section class="toolbar toolbar--cards-align" aria-label="Busca">
+      <!-- Busca e ordenação -->
+      <section class="toolbar toolbar--cards-align" aria-label="Busca e ordenação">
         <div class="search-wrapper">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
           <input type="search" id="materialSearch" class="search-input"
                  placeholder="Buscar em todos os materiais..." aria-label="Buscar material" />
+        </div>
+        <div class="filter-group">
+          <select id="materialSort" class="form-select" aria-label="Ordenar materiais">
+            <option value="date-desc">Modificação: recentes primeiro</option>
+            <option value="date-asc">Modificação: antigos primeiro</option>
+            <option value="name-asc">Ordem alfabética: A–Z</option>
+            <option value="name-desc">Ordem alfabética: Z–A</option>
+          </select>
         </div>
         <div class="results-count" id="materialsCount" aria-live="polite"></div>
       </section>

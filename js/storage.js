@@ -124,25 +124,29 @@ HT.storage = (() => {
 
   function _toAttendance(r) {
     return {
-      id:            r.id,
-      studentId:     r.student_id,
-      classId:       r.class_id     || null,
-      teacherId:     r.teacher_id   || null,
-      date:          r.date,
-      status:        r.status,
-      lessonContent: r.lesson_content || '',
-      notes:         r.notes          || '',
-      createdAt:     r.created_at,
+      id:              r.id,
+      studentId:       r.student_id,
+      classId:         r.class_id     || null,
+      teacherId:       r.teacher_id   || null,
+      date:            r.date,
+      status:          r.status,
+      durationMinutes: r.duration_minutes ?? null,
+      lessonContent:   r.lesson_content || '',
+      notes:           r.notes          || '',
+      createdAt:       r.created_at,
     };
   }
   async function _fromAttendance(d, isInsert = false) {
     const base = {
-      student_id:     d.studentId,
-      class_id:       d.classId       || null,
-      date:           d.date,
-      status:         d.status,
-      lesson_content: d.lessonContent || '',
-      notes:          d.notes         || '',
+      student_id:       d.studentId,
+      class_id:         d.classId       || null,
+      date:             d.date,
+      status:           d.status,
+      duration_minutes: d.durationMinutes != null && d.durationMinutes !== ''
+                          ? Number(d.durationMinutes)
+                          : null,
+      lesson_content:   d.lessonContent || '',
+      notes:            d.notes         || '',
     };
 
     if (isInsert) {
@@ -1101,6 +1105,7 @@ HT.storage = (() => {
       folderName:  r.folder?.name  || null,
       folderColor: r.folder?.color || null,
       createdAt:   r.created_at,
+      updatedAt:   r.updated_at || r.created_at,
     }));
   }
 

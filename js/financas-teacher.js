@@ -106,22 +106,22 @@
     total: {
       icon:  'fa-hand-holding-dollar',
       title: 'A receber no período',
-      body:  'Soma do que você tem direito a receber no mês. Aulas com alunos presentes entram pelo valor base; faltas não justificadas entram pela metade do valor; justificadas entram quando forem repostas. Valores específicos por aluno substituem o valor base no cálculo.',
+      body:  'Soma do que você tem direito a receber no mês. O cálculo é proporcional à duração de cada aula: Valor por hora × (duração em min ÷ 60). Aulas com alunos presentes pagam integralmente; faltas não justificadas pagam metade; justificadas entram só depois da reposição. Valores por hora específicos por aluno substituem o valor base do professor.',
     },
     present: {
       icon:  'fa-circle-check',
       title: 'Aulas',
-      body:  'Cada aula com alunos presentes é contabilizada de acordo com o valor base.',
+      body:  'Cada aula com alunos presentes é paga proporcional à duração informada: Valor por hora × (duração ÷ 60). Ex.: valor base R$ 20/hora + aula de 45 min = R$ 15.',
     },
     absent: {
       icon:  'fa-user-xmark',
       title: 'Faltas',
-      body:  'As faltas ocorrem quando o aluno não avisa da sua ausência e não recebe direito à reposição. Nesses casos, o professor recebe metade do valor da aula.',
+      body:  'Faltas não justificadas (aluno não avisa e não tem direito à reposição) pagam metade do valor da aula. Ex.: valor base R$ 20/hora + aula planejada de 60 min = R$ 10.',
     },
     justified: {
       icon:  'fa-circle-xmark',
       title: 'Justificadas',
-      body:  'As aulas justificadas são aquelas que o aluno avisa sua ausência com antecedência e tem o direito de repor. Após reposição, o valor da aula é contabilizado integralmente para o professor.',
+      body:  'As aulas justificadas são aquelas em que o aluno avisa sua ausência com antecedência e tem direito de repor. Após reposição, o valor é contabilizado integralmente (proporcional à duração da reposição).',
     },
   };
 
