@@ -299,6 +299,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     render();
   });
 
+  /* IDs de curso relevantes ao contexto atual do modal:
+     - Modo turma: cursos dos alunos da turma pré-selecionados;
+     - Modo individual: cursos dos alunos já adicionados na lista;
+     - Fallback (lista vazia): retorna null → mostra todos os módulos. */
+  function getRelevantCourseIds() {
+    const rows = document.querySelectorAll('#attStudentsList .att-student-row');
+    if (!rows.length) return null;
+    const ids = new Set();
+    rows.forEach(r => {
+      const s = findStudent(r.dataset.studentId);
+      if (s?.courseId) ids.add(s.courseId);
+    });
+    return ids.size ? ids : null;
+  }
+
   /* ====== Curriculum picker (modal de aula) — guias por módulo ====== */
   function buildCurriculumPicker() {
     const picker = document.getElementById('attCurriculumPicker');
@@ -309,13 +324,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    /* Filtra só módulos que têm conteúdo */
-    const activeMods = allProgMods.filter(mod =>
-      allProgConts.some(c => c.moduleId === mod.id)
-    );
+    const rowCount = document.querySelectorAll('#attStudentsList .att-student-row').length;
+    if (!rowCount) {
+      picker.innerHTML = `<div class="att-curriculum-empty">Adicione ao menos um aluno acima para ver os módulos do curso.</div>`;
+      return;
+    }
+
+    /* Filtra módulos: (1) precisam ter conteúdo E (2) devem pertencer ao(s)
+       curso(s) dos alunos deste registro (ou serem gerais — sem course_id). */
+    const courseIds = getRelevantCourseIds();
+    const activeMods = allProgMods.filter(mod => {
+      const hasContent = allProgConts.some(c => c.moduleId === mod.id);
+      if (!hasContent) return false;
+      if (!courseIds) return true;                        /* sem contexto → mostra todos */
+      if (!mod.courseId) return true;                     /* módulo geral aparece em qualquer curso */
+      return courseIds.has(mod.courseId);
+    });
 
     if (!activeMods.length) {
-      picker.innerHTML = `<div class="att-curriculum-empty">Nenhum conteúdo no currículo.</div>`;
+      picker.innerHTML = `<div class="att-curriculum-empty">Nenhum módulo do currículo corresponde ao curso dos alunos selecionados.</div>`;
       return;
     }
 
@@ -398,8 +425,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         + allClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     }
 
-    buildCurriculumPicker();
     buildStudentList(null);
+    buildCurriculumPicker();  /* depois de buildStudentList — usa contexto de alunos */
     modals.open('attModalOverlay');
   }
 
@@ -410,6 +437,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('attClassSelect')?.addEventListener('change', (e) => {
     const classId = e.target.value || null;
     buildStudentList(classId);
+    buildCurriculumPicker();  /* filtra módulos pelo curso da turma */
     if (classId) {
       const planned = scheduleDurationForClass(classId);
       if (planned) {
@@ -457,7 +485,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       row.querySelector('.att-remove-student').addEventListener('click', () => {
         row.remove();
         _syncIndividualEmpty();
-        _refreshCombobox();  // recoloca o aluno nas opções do combobox
+        _refreshCombobox();       // recoloca o aluno nas opções do combobox
+        buildCurriculumPicker();  // recalcula módulos após remover aluno
       });
     }
 
@@ -521,7 +550,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (emptyEl) emptyEl.remove();
           sel.appendChild(makeStudentRow(s, { removable: true }));
           inp.value = '';
-          renderList();       /* atualiza a lista, mantém o dropdown aberto */
+          renderList();               /* atualiza a lista, mantém o dropdown aberto */
+          buildCurriculumPicker();    /* filtra módulos pelo curso do aluno adicionado */
           inp.focus();
         });
       });
